@@ -1,0 +1,47 @@
+/* This is the css styling for the right side component. 
+   Dalton Rogers
+   12/4/2024
+*/
+
+.right-side {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    flex: 1;
+    padding: 10px;
+    background-color: #FFE5D8;
+    height: 100%;
+}
+
+.buttons-container {
+    display: flex;
+    justify-content: space-evenly;
+    gap: 10px;
+    padding: 10px;
+    align-items: center;
+}
+
+.buttons-container button {
+    padding: 10px 20px;
+    background: linear-gradient(145deg, #a9a9a9, #888888);  
+    color: white;
+    border: none;
+    border-radius: 8px; 
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s ease; 
+}
+
+.buttons-container button:hover {
+    background: linear-gradient(145deg, #777777, #555555);
+}
+
+.image-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f4f4f4;
+    border-top: 1px solid #ddd;
+    padding: 10px;
+}

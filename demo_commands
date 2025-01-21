@@ -1,0 +1,6 @@
+curl -H 'Content-Type: application/json' -d '{ "username":"pknepps","first":"Preston", "last": "Knepper"}' -X POST http://localhost:8000/api/user/
+curl -H 'Content-Type: application/json' -d '{ "name":"polyjuice potion", "price": 12.95}' -X POST http://localhost:8000/api/product/
+curl -H 'Content-Type: application/json' -d '{ "username": "pknepps", "product_id": 14, "review": 4}' -X POST http://localhost:8000/api/rating/
+curl -H 'Content-Type: application/json' -d '{ "username": "pknepps", "product_id": 14, "review": "my review here"}' -X POST http://localhost:8000/api/review/
+curl -H 'Content-Type: application/json' -d '{ "price": .99}' -X PUT http://localhost:8000/api/product/14
+curl -H 'Content-Type: application/json' -d '{ "firstName": "megatron"}' -X PUT http://localhost:8000/api/user/pknepps

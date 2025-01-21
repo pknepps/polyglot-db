@@ -1,0 +1,283 @@
+/**
+ * This module is responsible for working with the API to GET, PUT, and POST
+ * the various pieces of information.
+ * 
+ * @Author Preston Knepper and Dalton Rogers
+ * @Version 11/19/2024
+ */
+
+// these are the required imports
+import { Router, Request, Response } from "express";
+import {getProduct, getUser, getProducts} from "./get";
+import { Db } from "mongodb";
+import { newProduct, newUser, newTransaction } from "./create";
+import { Product, ProductRecord, User, UserRecord, TransactionRecord } from "./interfaces";
+import { addReview, addRating, updateProduct, updateUser } from "./update";
+import { recommend_from_product } from "./recommend";
+
+/**
+ * Creates an Express router, which is used to define and handle API routes for the
+ * application.
+ * 
+ * @param mongo_db The mongo database to query.
+ * @returns The Express Router.
+ */
+export function createRouter(mongo_db: Db) {
+    const router = Router();
+    apiGetProduct(router, mongo_db);
+    apiPostProduct(router, mongo_db);
+    apiPutProduct(router, mongo_db);
+    apiGetUser(router, mongo_db);
+    apiPostUser(router, mongo_db);
+    apiPutUser(router, mongo_db);
+    apiPostTransaction(router, mongo_db);
+    apiPostReview(router, mongo_db);
+    apiPostRating(router, mongo_db);
+    apiGetRecommendation(router);
+    apiGetProducts(router, mongo_db);
+    return router;
+}
+
+/**
+ * Adds a route to GET the product of the given id.
+ *
+ * @param router The Express router to add the request to.
+ * @param mongo_db The mongo database to query.
+ */
+function apiGetProduct(router: Router, mongo_db: Db) {
+    router.get('/product/:id', (req: Request, res: Response) => {
+        const id = Number(req.params.id);
+        console.log(`Received GET request for product ${id}`);
+        getProduct(id, mongo_db)
+            .then(product => res.json(product))
+            .catch (_ => res.status(404).send('Not Found.\n'));
+    });
+}
+
+/**
+ * Finds the user based on the username provided, then responds with this user
+ * or responds with the message that it cannot be found.
+ * 
+ * @param router The Express Router to add the request to.
+ * @param mongo_db The mongo database to query.
+ */
+function apiGetUser(router: Router, mongo_db: Db){
+    router.get('/user/:username', (req: Request, res: Response) => {
+        const username = String(req.params.username);
+        console.log(`Received GET request for user ${username}`);
+        getUser(username, mongo_db)
+            .then(user => res.json(user))
+            .catch(_ => res.status(404).send('Not Found.\n.'));
+    });
+}
+
+/**
+ * Adds a route to POST a new product.
+ *
+ * @param router The router to add the request to.
+ * @param mongo_db The mongo database to query.
+ */
+function apiPostProduct(router: Router, mongo_db: Db) {
+    router.post('/product/', (req: Request, res: Response) => {
+        try {
+            const product_data = req.body;
+            console.log(`Received POST request for products: ${product_data}`);
+            const {name, price} = product_data;
+            const product: Product = {
+                product_id: 0,
+                name,
+                price: Number(price),
+                ratings: [],
+                reviews: []
+            };
+
+            const record: ProductRecord = {
+                productId: 0,
+                name,
+                price,
+            };
+
+            newProduct(record, product, mongo_db);
+            res.status(200).send("Product added.\n");
+        } catch (e) {
+            console.log(e);
+            res.status(400).send("Invalid parameters\n");
+        }
+    });
+}
+
+/**
+ * Adds a route to PUT an update on an existing product with the given id.
+ *
+ * @param router The router to add the request to.
+ * @param mongo_db The mongo database to query.
+ */
+function apiPutProduct(router: Router, mongo_db: Db) {
+    router.put('/product/:id', (req: Request, res: Response) => {
+       try {
+           const product_data = req.body
+           const id = Number(req.params.id);
+           console.log(`Received PUT request for products: ${product_data}`);
+           product_data["product_id"] = id;
+           updateProduct(product_data, mongo_db);
+           res.status(200).send("Product updated.\n");
+       } catch (e) {
+           console.log(e);
+           res.status(400).send("Invalid parameters or product_id.\n");
+       }
+    });
+}
+
+/**
+ * Adds a route to POST a new User.
+ *
+ * @param router The router to add the request to.
+ * @param mongo_db The mongo database to query.
+ */
+function apiPostUser(router: Router, mongo_db: Db){
+    router.post('/user/', (req: Request, res: Response) => {
+        try{
+            const { username, first, last } = req.body;
+            const user: User = {
+                username,
+                firstName: first, 
+                lastName: last,
+                middleName: '',
+                addresses: [],
+                payments: [],
+                transactions: [],
+                ratings: [],
+                reviews: []
+            };
+            const userRecord: UserRecord = {
+                username,
+                firstName: first,
+                lastName: last
+            };
+            newUser(userRecord, user, mongo_db);
+            res.status(200).send("User added.\n");
+        } catch (e) {
+            console.log(e);
+            res.status(400).send("Invalid parameters.\n");
+        }
+    });
+}
+
+/**
+ * Adds a new Route to POST a new transaction.
+ *
+ * @param router The router to add the request to.
+ * @param mongo_db The mongo database to query.
+ */
+function apiPostTransaction(router: Router, mongo_db: Db){
+    router.post('/transaction/', (req: Request, res: Response) => {
+        try{
+            const { username, productId, cardNum, address, city, state, zip } = req.body;
+            console.log(`Received POST request for transaction ${productId}, and ${username}`);
+
+            const transaction: TransactionRecord = {
+                transactionId: 0,
+                username,
+                productId: Number(productId),
+                cardNum: Number(cardNum),
+                address,
+                city,
+                state,
+                zip: Number(zip)
+            };
+
+            newTransaction(transaction, mongo_db);
+            res.status(200).send("Transaction added\n");
+        } catch (e) {
+            console.log(e);
+            res.status(400).send("Invalid parameters\n");
+        }
+    });
+
+}
+
+/**
+ * Adds a route to POST the review from the given username, for the given product_id.
+ *
+ * @param router The router to add the request to.
+ * @param mongo_db The mongo database to query.
+ */
+function apiPostReview(router: Router, mongo_db: Db){
+    router.post('/review/', (req: Request, res: Response) => {
+        try {
+            const data = req.body;
+            console.log(`Received POST request for review: ${data}`);
+            addReview(data, mongo_db)
+            res.status(200).send("Review added\n");
+        } catch (e) {
+            console.log(e);
+            res.status(400).send("Invalid parameters\n");
+        }
+    });
+}
+
+/**
+ * Adds a route to POST the rating from the given username, for the given product_id.
+ *
+ * @param router The router to add the request to.
+ * @param mongo_db The mongo database to query.
+ */
+function apiPostRating(router: Router, mongo_db: Db){
+    router.post('/rating/', (req: Request, res: Response) => {
+        try {
+            const data = req.body;
+            console.log(`Received POST request for rating ${data}`);
+            addRating(data, mongo_db)
+            res.status(200).send("Rating added\n");
+        } catch (e) {
+            console.log(e);
+            res.status(400).send("Invalid parameters\n");
+        }
+    });
+}
+
+/**
+ * Adds a route to GET 5 recommendations for the given product id.
+ *
+ * @param router The router to add the request to.
+ */
+function apiGetRecommendation(router: Router){
+    router.get('/recommendations/:id', (req: Request, res: Response) => {
+        const product_id = Number(req.params.id);
+        console.log(`Received GET recommendation request for product ${product_id}`)
+        recommend_from_product(product_id)
+            .then(products => res.json(products))
+            .catch (_ => res.status(404).send('Not Found\n'));
+    });
+}
+
+/**
+ * Adds a route to PUT an update on an existing user with the given username.
+ *
+ * @param router The router to add the request to.
+ * @param mongo_db The mongo database to query.
+ */
+function apiPutUser(router: Router, mongo_db: Db) {
+    router.put('/user/:username', (req: Request, res: Response) => {
+       try {
+           const user_data = req.body
+           const username = String(req.params.username);
+           console.log(`Received PUT request for user: ${user_data}`);
+           user_data["username"] = username;
+           updateUser(user_data, mongo_db);
+           res.status(200).send("User updated.\n");
+       } catch (e) {
+           console.log(e);
+           res.status(400).send("Invalid parameters or username.\n");
+       }
+    });
+}
+
+
+function apiGetProducts(router: Router, mongo_db: Db) {
+    router.get('/products/:number', (req: Request, res: Response) => {
+        getProducts(parseInt(req.params.number), mongo_db)
+            .then(products => res.json(products))
+            .catch(_ => res.status(404).send('Not Found\n'));
+    });
+}

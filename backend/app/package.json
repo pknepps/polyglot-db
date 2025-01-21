@@ -1,0 +1,39 @@
+{
+  "name": "polyglot",
+  "version": "1.0.0",
+  "main": "build/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start-dev": "npx nodemon"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/wcu-edu/polyglot-polyglot-team.git"
+  },
+  "author": "Dalton Rogers and Preston Knepper",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wcu-edu/polyglot-polyglot-team/issues"
+  },
+  "homepage": "https://github.com/wcu-edu/polyglot-polyglot-team#readme",
+  "description": "",
+  "devDependencies": {
+    "@faker-js/faker": "^9.0.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.9.0",
+    "@types/pg": "^8.11.9",
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "nodemon": "^3.1.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "@databases/pg-schema-cli": "^4.4.0",
+    "@databases/pg-typed": "^4.4.1",
+    "mongodb": "^6.9.0",
+    "neo4j-driver": "^5.26.0",
+    "pg": "^8.12.0"
+  }
+}
