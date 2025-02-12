@@ -1,5 +1,4 @@
 use std::io::Result;
-use std::process::Output;
 
 mod unix;
 mod windows;
@@ -9,54 +8,40 @@ pub use crate::windows::Windows;
 pub fn start(action: Action) {
     // checks what os is being used and calls the appropriate setup
     if cfg!(target_os = "windows") {
-        Windows::setup_postgres();
-        todo!("Add windows setup")
+        match action {
+            Action::Setup(perform_on) => Windows::setup(perform_on),
+            Action::Teardown(perform_on) => Windows::teardown(perform_on),
+        }
     } else {
-        todo!("Add unix setup")
+        match action {
+            Action::Setup(perform_on) => Unix::setup(perform_on),
+            Action::Teardown(perform_on) => Unix::teardown(perform_on),
+        }
     }
 }
 
 pub enum Action {
-    Setup(Config),
-    Teardown(Config),
+    Setup(PerformOn),
+    Teardown(PerformOn),
 }
 
-pub struct Config {
-    perform_on_postgres: bool,
-    perform_on_mongodb: bool,
-    perform_on_neo4j: bool,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Config {
-            perform_on_postgres: true,
-            perform_on_mongodb: true,
-            perform_on_neo4j: true,
-        }
-    }
-}
-
-impl Config {
-    pub fn new(perform_on_postgres: bool, perform_on_mongodb: bool, perform_on_neo4j: bool) -> Self {
-        Config {
-            perform_on_postgres,
-            perform_on_mongodb,
-            perform_on_neo4j,
-        }
-    }
+pub enum PerformOn {
+    All,
+    Postgres,
+    MongoDB,
+    Neo4j,
 }
 
 pub trait Setup {
-    fn setup(config: Config) -> Result<()>;
-    fn setup_postgres() -> Result<Output>;
-    fn setup_mongodb() -> Result<Output>;
-    fn setup_neo4j() -> Result<Output>;
+    fn setup(perform_on: PerformOn);
+    fn setup_postgres() -> Result<()>;
+    fn setup_mongodb() -> Result<()>;
+    fn setup_neo4j() -> Result<()>;
 }
 
 pub trait Teardown {
-    fn teardown(config: Config) -> Result<()>;
-    fn teardown_postgres() -> Result<Output>;
-    fn teardown_mongodb() -> Result<Output>;
-    fn teardown_neo4j() -> Result<Output>;
+    fn teardown(perform_on: PerformOn);
+    fn teardown_postgres() -> Result<()>;
+    fn teardown_mongodb() -> Result<()>;
+    fn teardown_neo4j() -> Result<()>;
 }
