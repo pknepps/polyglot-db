@@ -6,7 +6,7 @@ mod windows;
 pub use crate::unix::Unix;
 pub use crate::windows::Windows;
 
-pub fn start(action: Action) -> Result<Output> {
+pub fn start(action: Action) {
     // checks what os is being used and calls the appropriate setup
     if cfg!(target_os = "windows") {
         Windows::setup_postgres();
@@ -48,14 +48,14 @@ impl Config {
 }
 
 pub trait Setup {
-    fn setup(config: Config) -> Result<Output>;
+    fn setup(config: Config) -> Result<()>;
     fn setup_postgres() -> Result<Output>;
     fn setup_mongodb() -> Result<Output>;
     fn setup_neo4j() -> Result<Output>;
 }
 
 pub trait Teardown {
-    fn teardown(config: Config) -> Result<Output>;
+    fn teardown(config: Config) -> Result<()>;
     fn teardown_postgres() -> Result<Output>;
     fn teardown_mongodb() -> Result<Output>;
     fn teardown_neo4j() -> Result<Output>;
