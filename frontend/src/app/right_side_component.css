@@ -9,7 +9,7 @@
     width: 100%;
     flex: 1;
     padding: 10px;
-    background-color: #FFE5D8;
+    background-color: #ffe5d8;
     height: 100%;
 }
 
@@ -19,17 +19,6 @@
     gap: 10px;
     padding: 10px;
     align-items: center;
-}
-
-.buttons-container button {
-    padding: 10px 20px;
-    background: linear-gradient(145deg, #a9a9a9, #888888);  
-    color: white;
-    border: none;
-    border-radius: 8px; 
-    font-size: 14px;
-    cursor: pointer;
-    transition: background 0.3s ease; 
 }
 
 .buttons-container button:hover {
