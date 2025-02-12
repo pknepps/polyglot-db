@@ -3,7 +3,7 @@ use crate::{Config, Setup, Teardown};
 pub struct Windows;
 
 impl Setup for Windows {
-    fn setup(config: Config) -> std::io::Result<std::process::Output> {
+    fn setup(config: Config) -> std::io::Result<()> {
         todo!()
     }
 
@@ -21,7 +21,7 @@ impl Setup for Windows {
 }
 
 impl Teardown for Windows {
-    fn teardown(config: Config) -> std::io::Result<std::process::Output> {
+    fn teardown(config: Config) -> std::io::Result<()> {
         todo!()
     }
 
