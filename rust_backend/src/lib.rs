@@ -38,7 +38,7 @@ impl Default for Config {
 }
 
 impl Config {
-    fn new(perform_on_postgres: bool, perform_on_mongodb: bool, perform_on_neo4j: bool) -> Self {
+    pub fn new(perform_on_postgres: bool, perform_on_mongodb: bool, perform_on_neo4j: bool) -> Self {
         Config {
             perform_on_postgres,
             perform_on_mongodb,
