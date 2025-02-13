@@ -1,8 +1,8 @@
 /**
  * This module holds all the interfaces that have been defined for this
  * project. This includes user records, product records, transactions records,
- * users, and products. 
- * 
+ * users, and products.
+ *
  * @author Preston Knepper and Dalton Rogers
  * @version 10/28/2024
  */
@@ -47,11 +47,11 @@ export interface User {
     firstName: string;
     lastName: string;
     middleName: string;
-    addresses: {address: string, city: string, state: string, zip: number}[];
-    payments: {cardnum: number}[];
+    addresses: { address: string; city: string; state: string; zip: number }[];
+    payments: { cardnum: number }[];
     transactions: number[];
-    ratings: {product_id: number, rating: number}[];
-    reviews: {product_id: number, review: string}[];
+    ratings: ProductRating[];
+    reviews: ProductReview[];
 }
 
 /**
@@ -61,6 +61,16 @@ export interface Product {
     product_id: number;
     name: string;
     price: number;
-    ratings: {username: string, rating: number}[];
-    reviews: {username: string, review: string}[];
+    ratings: ProductRating[];
+    reviews: ProductReview[];
+}
+
+export interface ProductRating {
+    username: string;
+    rating: number;
+}
+
+export interface ProductReview {
+    username: string;
+    review: string;
 }

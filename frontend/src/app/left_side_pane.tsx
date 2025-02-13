@@ -7,7 +7,6 @@
  */
 
 import React from "react";
-import "./left_side_pane.css";
 
 /**
  * Creates the left side component.
