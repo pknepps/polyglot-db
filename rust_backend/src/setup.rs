@@ -1,6 +1,6 @@
 use crate::{PerformOn, run_command, OS};
 use sqlx::{PgPool, query};
-use futures::executor::block_on;
+use tokio::runtime::Runtime;
 
 /// #Setup
 /// This module does either setup for all of the database systems or will
@@ -99,8 +99,11 @@ fn postgres(os: OS) -> std::io::Result<()> {
             -d \
             postgres"
     ), os)?;
-    let _ = block_on(post_schema(password));
-    println!("HERE");
+    let runtime = Runtime::new().expect("Failed to create Tokio runtime");
+    if let Err(e) = runtime.block_on(post_schema(password)) {
+        eprintln!("Error setting up PostgreSQL schema: {:?}", e);
+        return Err(std::io::Error::new(std::io::ErrorKind::Other, "PostgreSQL schema setup failed"));
+    }
     Ok(())
 }
 
@@ -109,19 +112,20 @@ fn postgres(os: OS) -> std::io::Result<()> {
 /// **Param** password: The password for the Postgres user.
 /// **Return**: Either nothing, or an error if one of the queries doesn't work.
 async fn post_schema(password: &str) -> Result<(), sqlx::Error> {
-    println!("Hello:");
-    let database_url = format!("postgres://postgres:{}@polyglot-postgres:5432/postgres", password);
-    println!("Before the connection attempt");
+    let database_url = format!("postgres://postgres:{}@localhost:5432/postgres", password);
+    
+    println!("Before connection attempt");
     let pool = PgPool::connect(&database_url).await?;
     println!("Connected to Postgres");
+    
     // drop previous tables
-    query("DROP TABLE TRANSACTIONS;")
+    query("DROP TABLE IF EXISTS TRANSACTIONS;")
         .execute(&pool)
         .await?;
-    query("DROP TABLE PRODUCTS;")
+    query("DROP TABLE IF EXISTS PRODUCTS;")
         .execute(&pool)
         .await?;
-    query("DROP TABLE USERS;")
+    query("DROP TABLE IF EXISTS USERS;")
         .execute(&pool)
         .await?;
     // create necessary tables
