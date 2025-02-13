@@ -1,33 +1,9 @@
-use std::io::Result;
-mod unix;
-mod windows;
-pub use crate::unix::Unix;
-pub use crate::windows::Windows;
-/// 
-/// This module is responsible for performing either the setup or the teardown depending 
-/// on the user input.
-/// Author Preston Knepper
-/// Version 2/12/25
-/// 
+use std::process::Command;
 
-///
-/// This function will determine the target operating system that the setup and
-/// teardown will be performed on. Either Windows or Unix. 
-/// 
-pub fn start(action: Action) {
-    // checks what os is being used and calls the appropriate setup
-    if cfg!(target_os = "windows") {
-        match action {
-            Action::Setup(perform_on) => Windows::setup(perform_on),
-            Action::Teardown(perform_on) => Windows::teardown(perform_on),
-        }
-    } else { // this does the unix setup
-        match action {
-            Action::Setup(perform_on) => Unix::setup(perform_on),
-            Action::Teardown(perform_on) => Unix::teardown(perform_on),
-        }
-    }
-}
+mod setup;
+mod teardown;
+pub use crate::setup::setup;
+pub use crate::teardown::teardown;
 
 ///
 /// The Action enum is responsible for classifying what we are performing, in this
@@ -50,26 +26,39 @@ pub enum PerformOn {
     Neo4j,
 }
 
-///
-/// Acts like an Interface for Setup, highlighting what needs to be implemented
-/// by Setup. This includes methods for setting up all the containers, or just one
-/// specific container.
-/// 
-pub trait Setup {
-    fn setup(perform_on: PerformOn);
-    fn setup_postgres() -> Result<()>;
-    fn setup_mongodb() -> Result<()>;
-    fn setup_neo4j() -> Result<()>;
+#[derive(Clone, Copy)]
+enum OS {
+    Windows,
+    Unix,
 }
 
-/// 
-/// Acts like an Interface for Teardown, highlighting what needs to be 
-/// implemented by Teardown. This includes methods for tearing down all
-/// of the containers, or just one specific container.
-/// 
-pub trait Teardown {
-    fn teardown(perform_on: PerformOn);
-    fn teardown_postgres() -> Result<()>;
-    fn teardown_mongodb() -> Result<()>;
-    fn teardown_neo4j() -> Result<()>;
+pub fn start(action: Action) {
+    // checks what os is being used and calls the appropriate setup
+    if cfg!(target_os = "windows") {
+        match action {
+            Action::Setup(perform_on) => setup(perform_on, OS::Windows),
+            Action::Teardown(perform_on) => teardown(perform_on, OS::Windows),
+        }
+    } else {
+        match action {
+            Action::Setup(perform_on) => setup(perform_on, OS::Unix),
+            Action::Teardown(perform_on) => teardown(perform_on, OS::Unix),
+        }
+    }
+}
+
+fn run_command(command: &str, os: OS) -> std::io::Result<()> {
+    let output = match os {
+        OS::Windows => Command::new("cmd")
+            .arg("/C")
+            .arg(command)
+            .output()?,
+        OS::Unix => Command::new("sh")
+            .arg("-c")
+            .arg(command)
+            .output()?,
+    };
+    println!("{}", String::from_utf8_lossy(&output.stdout));
+    eprintln!("{}", String::from_utf8_lossy(&output.stderr));
+    Ok(())
 }
