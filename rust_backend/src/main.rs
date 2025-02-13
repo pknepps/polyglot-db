@@ -1,17 +1,15 @@
 use std::process;
 use std::env;
 use rust_backend::{start, PerformOn, Action};
-/*
-This program is responsible for setting up and tearing down the polyglot system.
 
-@author Dalton Rogers, Preston Knepper
-@version 2/12/25
-*/
-
+/// # Main
+/// This program is responsible for setting up and tearing down the polyglot system.
 ///
+///**Authors:** Dalton Rogers, Preston Knepper
+///**Version:** 2/12/25
+
 /// Simply parses the command line args, ensures there are the expected number,
 /// and calls the proper method (either setup or teardown).
-/// 
 fn main() {
     // get the args
     let args: Vec<String> = env::args().collect();
