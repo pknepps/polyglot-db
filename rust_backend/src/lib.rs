@@ -1,24 +1,9 @@
-use std::io::Result;
+use std::process::Command;
 
-mod unix;
-mod windows;
-pub use crate::unix::Unix;
-pub use crate::windows::Windows;
-
-pub fn start(action: Action) {
-    // checks what os is being used and calls the appropriate setup
-    if cfg!(target_os = "windows") {
-        match action {
-            Action::Setup(perform_on) => Windows::setup(perform_on),
-            Action::Teardown(perform_on) => Windows::teardown(perform_on),
-        }
-    } else {
-        match action {
-            Action::Setup(perform_on) => Unix::setup(perform_on),
-            Action::Teardown(perform_on) => Unix::teardown(perform_on),
-        }
-    }
-}
+mod setup;
+mod teardown;
+pub use crate::setup::setup;
+pub use crate::teardown::teardown;
 
 pub enum Action {
     Setup(PerformOn),
@@ -32,16 +17,39 @@ pub enum PerformOn {
     Neo4j,
 }
 
-pub trait Setup {
-    fn setup(perform_on: PerformOn);
-    fn setup_postgres() -> Result<()>;
-    fn setup_mongodb() -> Result<()>;
-    fn setup_neo4j() -> Result<()>;
+#[derive(Clone, Copy)]
+enum OS {
+    Windows,
+    Unix,
 }
 
-pub trait Teardown {
-    fn teardown(perform_on: PerformOn);
-    fn teardown_postgres() -> Result<()>;
-    fn teardown_mongodb() -> Result<()>;
-    fn teardown_neo4j() -> Result<()>;
+pub fn start(action: Action) {
+    // checks what os is being used and calls the appropriate setup
+    if cfg!(target_os = "windows") {
+        match action {
+            Action::Setup(perform_on) => setup(perform_on, OS::Windows),
+            Action::Teardown(perform_on) => teardown(perform_on, OS::Windows),
+        }
+    } else {
+        match action {
+            Action::Setup(perform_on) => setup(perform_on, OS::Unix),
+            Action::Teardown(perform_on) => teardown(perform_on, OS::Unix),
+        }
+    }
+}
+
+fn run_command(command: &str, os: OS) -> std::io::Result<()> {
+    let output = match os {
+        OS::Windows => Command::new("cmd")
+            .arg("/C")
+            .arg(command)
+            .output()?,
+        OS::Unix => Command::new("sh")
+            .arg("-c")
+            .arg(command)
+            .output()?,
+    };
+    println!("{}", String::from_utf8_lossy(&output.stdout));
+    eprintln!("{}", String::from_utf8_lossy(&output.stderr));
+    Ok(())
 }
