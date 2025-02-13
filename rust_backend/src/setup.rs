@@ -1,4 +1,6 @@
 use crate::{PerformOn, run_command, OS};
+use sqlx::{PgPool, query};
+use futures::executor::block_on;
 
 /// #Setup
 /// This module does either setup for all of the database systems or will
@@ -97,5 +99,57 @@ fn postgres(os: OS) -> std::io::Result<()> {
             -d \
             postgres"
     ), os)?;
+    let _ = block_on(post_schema(password));
+    println!("HERE");
+    Ok(())
+}
+
+/// Will create the postgres schema for the Docker container. 
+/// 
+/// **Param** password: The password for the Postgres user.
+/// **Return**: Either nothing, or an error if one of the queries doesn't work.
+async fn post_schema(password: &str) -> Result<(), sqlx::Error> {
+    println!("Hello:");
+    let database_url = format!("postgres://postgres:{}@polyglot-postgres:5432/postgres", password);
+    println!("Before the connection attempt");
+    let pool = PgPool::connect(&database_url).await?;
+    println!("Connected to Postgres");
+    // drop previous tables
+    query("DROP TABLE TRANSACTIONS;")
+        .execute(&pool)
+        .await?;
+    query("DROP TABLE PRODUCTS;")
+        .execute(&pool)
+        .await?;
+    query("DROP TABLE USERS;")
+        .execute(&pool)
+        .await?;
+    // create necessary tables
+    query("CREATE TABLE USERS (
+                    username VARCHAR(50) PRIMARY KEY,
+                    first_name VARCHAR(50),
+                    last_name VARCHAR(50)
+        );")
+        .execute(&pool)
+        .await?;
+    query("CREATE TABLE PRODUCTS (
+                    product_id INT PRIMARY KEY,
+                    price float(2),
+                    name VARCHAR(255)
+        );")
+        .execute(&pool)
+        .await?;
+    query("CREATE TABLE TRANSACTIONS (
+                    transaction_id INT PRIMARY KEY, 
+                    username VARCHAR(50) REFERENCES USERS,
+                    product_id INT REFERENCES PRODUCTS,
+                    card_num BIGINT,
+                    address_line VARCHAR(100),
+                    city VARCHAR(35),
+                    state CHAR(2),
+                    zip INT
+        );")
+        .execute(&pool)
+        .await?;
     Ok(())
 }
