@@ -25,8 +25,11 @@ export default function ProductLayout({ params }: { params: Promise<{ id: number
         }
         fetch().then((r) => r);
     }, [params]);
-    const avg_rating = product.ratings.reduce((sum, current) => sum + current.rating, 0) / product.ratings.length;
-    return (
+
+    const avg_rating = product
+        ? product.ratings.reduce((sum, current) => sum + current.rating, 0) / product.ratings.length
+        : null;
+    return product ? (
         <div>
             <h1 className="text-4xl font-thinbold">{product.name}</h1>
             <span className="text-sm text-gray-600 ml-4 mt-16">id: {product.product_id}</span>
@@ -38,13 +41,16 @@ export default function ProductLayout({ params }: { params: Promise<{ id: number
             </Card>
             <Card>
                 <h3 className="font-bold">Reviews:</h3>
-                <Card>
-                    {product.reviews.map((review, i) => (
-                        <Review key={i} review={review} />
-                    ))}
-                </Card>
+                {product.reviews.map((review, i) => (
+                    <Card key={i}>
+                        <Review review={review} />
+                    </Card>
+                ))}
+                {product.reviews.length === 0 && "No reviews"}
             </Card>
         </div>
+    ) : (
+        <div>User does not exist.</div>
     );
 }
 
