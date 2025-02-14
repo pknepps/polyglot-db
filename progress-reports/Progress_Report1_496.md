@@ -23,3 +23,4 @@
 | Dalton | 2/11 | 3 hrs | Set up main.rs and got more familiar with how Rust works, along with the syntax. | Gained practice with Rust and am able to read in command line args. |
 | Preston | 2/11 | 3 hrs | Set up enums and worked on the ability to distribute and set up Docker containers using the Rust program. | Able to use Rust to set up Docker container on the hosts machine. |
 | Dalton | 2/13 | 2 hrs | Worked on a method to connect to database and initialize the schema from the Rust program. | The connection seems to be made, but the tables are not being created properly. |
+| Preston | 2/13 | 3 hrs | Worked to find the bug for why the tables were not being created. | The tables are properly created now. |
