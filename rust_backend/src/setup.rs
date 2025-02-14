@@ -96,6 +96,7 @@ fn postgres(os: OS) -> std::io::Result<()> {
         "docker run \
             --name=polyglot-postgres \
             -e POSTGRES_PASSWORD={password} \
+            --publish=5432:5432 \
             -d \
             postgres"
     ), os)?;
@@ -112,9 +113,9 @@ fn postgres(os: OS) -> std::io::Result<()> {
 /// **Param** password: The password for the Postgres user.
 /// **Return**: Either nothing, or an error if one of the queries doesn't work.
 async fn post_schema(password: &str) -> Result<(), sqlx::Error> {
-    let database_url = format!("postgres://postgres:{}@localhost:5432/postgres", password);
+    let database_url = format!("postgres://postgres:{}@localhost:5432/", password);
     
-    println!("Before connection attempt");
+    println!("Setting PostgreSQL schema:");
     let pool = PgPool::connect(&database_url).await?;
     println!("Connected to Postgres");
     
