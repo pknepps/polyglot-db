@@ -3,6 +3,7 @@
 import { ReactElement, useEffect, useState } from "react";
 import { getProduct } from "@/app/request";
 import { Product, ProductReview } from "../../../../../backend/app/src/interfaces";
+import { Card } from "@/app/components";
 
 /**
  * Creates a layout for the given product id
@@ -27,19 +28,22 @@ export default function ProductLayout({ params }: { params: Promise<{ id: number
     const avg_rating = product.ratings.reduce((sum, current) => sum + current.rating, 0) / product.ratings.length;
     return (
         <div>
-            <h1 className="text-2xl">{product.name}</h1>
-            <h3 className="text-sm text-gray-600 bg-">id: {product.product_id}</h3>
-            <h4 className="bg-stone-300 w-16 rounded-sm">${product.price.toFixed(2)}</h4>
-            <div className="bg-stone-300 px-4 py-2 my-2 rounded-md">
+            <h1 className="text-4xl font-thinbold">{product.name}</h1>
+            <span className="text-sm text-gray-600 ml-4 mt-16">id: {product.product_id}</span>
+
+            <div className="bg-slate-300 w-20 rounded-md font-bold text-xl">${product.price.toFixed(2)}</div>
+            <Card>
                 <h2 className="font-bold">Ratings and Reviews:</h2>
                 <h4>User Rating: {avg_rating}/5</h4>
-            </div>
-            <div className="bg-stone-300">
+            </Card>
+            <Card>
                 <h3 className="font-bold">Reviews:</h3>
-                {product.reviews.map((review, i) => (
-                    <Review key={i} review={review} />
-                ))}
-            </div>
+                <Card>
+                    {product.reviews.map((review, i) => (
+                        <Review key={i} review={review} />
+                    ))}
+                </Card>
+            </Card>
         </div>
     );
 }
@@ -52,8 +56,8 @@ export default function ProductLayout({ params }: { params: Promise<{ id: number
 function Review({ review }: { review: ProductReview }): ReactElement {
     return (
         <div>
-            <h4>{review.username}</h4>
-            <p>{review.review}</p>
+            <h4 className="font-semibold">{review.username}</h4>
+            <p className="m-1">{review.review}</p>
         </div>
     );
 }

@@ -15,5 +15,5 @@ import React from "react";
  * @returns
  */
 export function LeftSide({ children }: { children: React.ReactNode }) {
-    return <div className="bg-stone-100 w-full h-screen p-4">{children}</div>;
+    return <div className="bg-stone-100 w-full h-screen p-8">{children}</div>;
 }

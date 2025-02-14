@@ -42,7 +42,7 @@ export function RightSide() {
 
     // the html for the right side
     return (
-        <div className="bg-sky-100 w-full h-screen p-4">
+        <div className="bg-sky-100 w-full h-screen py-4 px-8">
             <div className="buttons-container">
                 <button className="btn py-2" onClick={() => handleButtonClick("PostgreSQL")}>
                     PostgreSQL
