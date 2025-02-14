@@ -12,6 +12,7 @@ import "./header.css";
 import Image from "next/image";
 import { getUser } from "@/app/request";
 import { User } from "../../../backend/app/src/interfaces";
+import { Modal } from "./components";
 
 /**
  * Creates the header component for the UI.
@@ -74,7 +75,7 @@ export function Header() {
 
     // the html for the header
     return (
-        <header className="bg-sky-800 flex flex-row justify-between align-middle py-2 px-4">
+        <header className="bg-sky-600 flex flex-row justify-between align-middle py-2 px-4">
             <div className="header-buttons">
                 <button className="btn">Home</button>
                 {currentUser ? (
@@ -122,55 +123,58 @@ export function Header() {
                 )}
             </div>
 
-            {isUserInfoModalOpen && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <h3>Account Information</h3>
-                        {currentUser ? (
-                            <>
-                                <p>
-                                    <strong>Full Name: </strong>
-                                    {currentUser.firstName} {currentUser.lastName}
-                                </p>
-                                {currentUser.addresses && currentUser.addresses.length > 0 ? (
-                                    <ul>
-                                        {currentUser.addresses.map((address, index) => (
-                                            <li key={index}>
-                                                <strong>Address {index + 1}: </strong>
-                                                {address.address}, {address.city}, {address.state} {address.zip}.
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p>No Addresses Available</p>
-                                )}
-                            </>
+            <Modal isDisplayed={isUserInfoModalOpen} onClose={() => setIsUserInfoModalOpen(false)}>
+                <h3 className="font-bold text-lg text-center">Account Information</h3>
+                {currentUser ? (
+                    <>
+                        <p>
+                            <strong>Full Name: </strong>
+                            {currentUser.firstName} {currentUser.lastName}
+                        </p>
+                        {currentUser.addresses && currentUser.addresses.length > 0 ? (
+                            <ul>
+                                {currentUser.addresses.map((address, index) => (
+                                    <li key={index}>
+                                        <strong>Address {index + 1}: </strong>
+                                        {address.address}, {address.city}, {address.state} {address.zip}.
+                                    </li>
+                                ))}
+                            </ul>
                         ) : (
-                            <p>Log-In for Account Details</p>
+                            <p>No Addresses Available</p>
                         )}
-                        <button onClick={closeUserInfoModal}>Close</button>
+                    </>
+                ) : (
+                    <p>Log-In for Account Details</p>
+                )}
+            </Modal>
+
+            <Modal isDisplayed={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)}>
+                <h2 className="font-bold text-lg text-center">Log In</h2>
+                <form onSubmit={handleSignIn}>
+                    <label htmlFor="username" className="text-gray-500">
+                        Username:
+                    </label>
+                    <input
+                        className="bg-sky-600/50 rounded px-2 py-2 mb-4"
+                        id="username"
+                        type="text"
+                        placeholder="Username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                    />
+                    <div className="flex flex-row justify-items-center">
+                        <button
+                            className="outline-1 w-40 rounded-2xl inline-block hover:bg-stone-200 active:bg-stone-600 active:text-white"
+                            type="submit"
+                        >
+                            Sign In
+                        </button>
                     </div>
-                </div>
-            )}
-            {isLoginModalOpen && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <h2>Sign In</h2>
-                        <form onSubmit={handleSignIn}>
-                            <input
-                                type="text"
-                                placeholder="Username"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                required
-                            />
-                            <button type="submit">Sign In</button>
-                        </form>
-                        {error && <p className="error-message">{error}</p>}
-                        <button onClick={closeLoginModal}>Close</button>
-                    </div>
-                </div>
-            )}
+                </form>
+                {error && <p className="error-message">{error}</p>}
+            </Modal>
         </header>
     );
 }
