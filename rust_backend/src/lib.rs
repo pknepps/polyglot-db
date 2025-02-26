@@ -67,17 +67,15 @@ pub fn start(action: Action) {
 /// **Return**: Will return nothing if all goes well, otherwise throws the 
 /// output.
 fn run_command(command: &str, os: OS) -> std::io::Result<()> {
-    let output = match os {
+    let _child = match os {
         OS::Windows => Command::new("cmd")
             .arg("/C")
             .arg(command)
-            .output()?,
+            .spawn()?,
         OS::Unix => Command::new("sh")
             .arg("-c")
             .arg(command)
-            .output()?,
+            .spawn()?,
     };
-    println!("{}", String::from_utf8_lossy(&output.stdout));
-    eprintln!("{}", String::from_utf8_lossy(&output.stderr));
     Ok(())
 }

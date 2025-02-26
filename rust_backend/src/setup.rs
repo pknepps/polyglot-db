@@ -1,4 +1,6 @@
 use crate::{PerformOn, run_command, OS};
+use std::thread;
+use std::time;
 use sqlx::{PgPool, query};
 use tokio::runtime::Runtime;
 
@@ -46,7 +48,7 @@ pub fn setup(perform_on: PerformOn, os: OS) {
 /// **Param** os: The operating system of the user.
 /// **Result**: Either nothing if all goes well, or an error which gets thrown.
 fn mongodb(os: OS) -> std::io::Result<()> {
-    println!("Creating MongoDB container...");
+    println!("\nCreating MongoDB container...\n");
     // command to pull the docker container
     run_command("docker pull mongodb/mongodb-community-server:latest", os)?;
     // command to run the docker container
@@ -68,7 +70,7 @@ fn mongodb(os: OS) -> std::io::Result<()> {
 fn neo4j(os: OS) -> std::io::Result<()> {
     // get the password
     let password = include_str!("../../backend/app/NEO4J_PASSWORD");
-    println!("Creating Neo4j container...");
+    println!("\nCreating Neo4j container...\n");
     // the command to run the neo4j container
     run_command(&format!(
         "docker run \
@@ -90,7 +92,7 @@ fn neo4j(os: OS) -> std::io::Result<()> {
 fn postgres(os: OS) -> std::io::Result<()> {
     // gets the password
     let password = include_str!("../../backend/app/POSTGRES_PASSWORD");
-    println!("Creating PostgreSQL container...");
+    println!("\nCreating PostgreSQL container...\n");
     // commmand to run the postgres container
     run_command(&format!(
         "docker run \
@@ -101,6 +103,7 @@ fn postgres(os: OS) -> std::io::Result<()> {
             postgres"
     ), os)?;
     let runtime = Runtime::new().expect("Failed to create Tokio runtime");
+    thread::sleep(time::Duration::new(5, 0));
     if let Err(e) = runtime.block_on(post_schema(password)) {
         eprintln!("Error setting up PostgreSQL schema: {:?}", e);
         return Err(std::io::Error::new(std::io::ErrorKind::Other, "PostgreSQL schema setup failed"));
@@ -115,9 +118,9 @@ fn postgres(os: OS) -> std::io::Result<()> {
 async fn post_schema(password: &str) -> Result<(), sqlx::Error> {
     let database_url = format!("postgres://postgres:{}@localhost:5432/", password);
     
-    println!("Setting PostgreSQL schema:");
+    println!("\nSetting PostgreSQL schema:");
     let pool = PgPool::connect(&database_url).await?;
-    println!("Connected to Postgres");
+    println!("Connected to Postgres...\n");
     
     // drop previous tables
     query("DROP TABLE IF EXISTS TRANSACTIONS;")
