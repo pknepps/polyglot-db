@@ -1,9 +1,9 @@
-export async function getNeo4JAdress(): Promise<String> {
-    return "hi"
+export async function getPostgressAddress(infoString: string): Promise<string> {
+    return "pknepps.net";
 }
-export async function getPostgresAddress(): Promise<String> {
-    return "hi"
+export async function getMongoAddress(infoString: string): Promise<string> {
+    return "pknepps.net";
 }
-export async function getMongoAdress(): Promise<String> {
-    return "hi"
+export async function getNeo4jAddress(infoString: string): Promise<string> {
+    return "pknepps.net";
 }
