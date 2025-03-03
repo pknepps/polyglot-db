@@ -1,0 +1,9 @@
+.left-side-container {
+    height: 100vh; /* Full viewport height */
+    overflow-y: auto; /* Enable vertical scrolling */
+}
+
+.left-side-list {
+    max-height: calc(100vh - 200px); /* Adjust based on your header and padding */
+    overflow-y: auto; /* Enable vertical scrolling for the list */
+}

@@ -5,17 +5,23 @@ import { getProduct } from "@/app/request";
 import { Product, ProductReview } from "../../../../../backend/app/src/interfaces";
 import { Card } from "@/app/components";
 
+/**
+ * Interface for the ProductLayout component. product_id is the id of the product the 
+ * user wishes to see.
+ */
 interface ProductLayoutProps {
     product_id: number;
 }
 
 /**
  * Creates a layout for the given product id
- * @param props Contains an id for the product the user wishes to see.
+ * @param product_id An id for the product the user wishes to see.
  */
 export default function ProductLayout({ product_id }: ProductLayoutProps): ReactElement {
+    // holds the product details
     const [productDetails, setProductDetails] = useState<Product | null>(null);
 
+    // get the product details when the product_id changes
     useEffect(() => {
         async function fetchProductDetails() {
             try {
@@ -28,10 +34,12 @@ export default function ProductLayout({ product_id }: ProductLayoutProps): React
         fetchProductDetails();
     }, [product_id]);
 
+    // get the average rating of the product
     const avg_rating = productDetails
         ? productDetails.ratings.reduce((sum, current) => sum + current.rating, 0) / productDetails.ratings.length
         : null;
 
+    // nicely format the product details
     return productDetails ? (
         <div>
             <Card>
