@@ -9,7 +9,6 @@
 
 import React, { useContext, useState } from "react";
 import "./header.css";
-import Image from "next/image";
 import { getUser } from "@/app/request";
 import { User } from "../../../backend/app/src/interfaces";
 import { Modal } from "./components";

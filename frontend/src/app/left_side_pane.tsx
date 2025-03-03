@@ -13,9 +13,12 @@ import "./left_side.css";
  * @returns
  */
 export function LeftSide({ children }: { children: React.ReactNode }) {
+    // keeps track of the products
     const [products, setProducts] = useState<Product[]>([]);
+    // access to the search query result
     const { searchQuery } = useContext(SearchContext);
 
+    // get the products
     useEffect(() => {
         async function fetchProducts() {
             try {
@@ -28,6 +31,7 @@ export function LeftSide({ children }: { children: React.ReactNode }) {
         fetchProducts();
     }, []);
 
+    // filter the products based on the search query
     const filteredProducts = searchQuery
         ? products.filter((product) =>
               product.product_id.toString() === searchQuery || product.name.toLowerCase().includes(searchQuery.toLowerCase())
