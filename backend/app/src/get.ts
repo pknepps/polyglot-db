@@ -71,3 +71,17 @@ export async function getProducts(n: number, mongodb: Db) {
         return new Promise((_, reject) => reject());
     }
 }
+
+/**
+ * Returns the count of documents in the products collection.
+ * @param mongodb The mongo database to query
+ * @returns The count of documents in the products collection.
+ */
+export async function getAllProducts(mongodb: Db) {
+    try {
+        return mongodb.collection("products").find({}).toArray();
+    } catch (e) {
+        console.log(`There was a problem querying products from MongoDB, ${e}`)
+        return new Promise((_, reject) => reject());
+    }
+}

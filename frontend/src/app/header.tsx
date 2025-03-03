@@ -7,12 +7,13 @@
  * @Version 11/26/2024
  */
 
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import "./header.css";
 import Image from "next/image";
 import { getUser } from "@/app/request";
 import { User } from "../../../backend/app/src/interfaces";
 import { Modal } from "./components";
+import { SearchContext } from "./searchContext";
 
 /**
  * Creates the header component for the UI.
@@ -26,6 +27,7 @@ export function Header() {
     const [username, setUsername] = useState("");
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [error, setError] = useState("");
+    const { setSearchQuery } = useContext(SearchContext);
 
     // open the login modal
     const openLoginModal = () => {
@@ -73,6 +75,10 @@ export function Header() {
         setUsername("");
     };
 
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(e.target.value);
+    };
+
     // the html for the header
     return (
         <header className="bg-sky-600 flex flex-row justify-between align-middle py-2 px-4">
@@ -107,7 +113,12 @@ export function Header() {
                     </svg>
                 </button>
 
-                <input type="text" className="search-bar w-s lg:w-md" placeholder="Search Products..." />
+                <input 
+                    type="text" 
+                    className="search-bar w-s lg:w-md" 
+                    placeholder="Search Products..." 
+                    onChange={handleSearch}
+                />
             </div>
             <div className="header-buttons">
                 {currentUser ? (

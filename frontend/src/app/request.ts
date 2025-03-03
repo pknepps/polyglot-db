@@ -6,7 +6,7 @@
  */
 
 // needed imports
-import {Product, User, TransactionRecord} from "../../../backend/app/src/interfaces"
+import {Product, User, TransactionRecord} from "../../../backend/app/src/interfaces";
 
 const backendAddress = "http://localhost:8000/api/"
 const frontendAddress = "http://localhost:3000/"
@@ -25,7 +25,7 @@ POSTHeaders.append("Content-Type", "application/json");
  * @returns  All products.
  */
 export async function getProducts(): Promise<Product[]> {
-    const request: RequestInfo = new Request(backendAddress + 'products/', {
+    const request: RequestInfo = new Request(backendAddress + 'products/all', {
         method: 'GET',
         headers: GETHeaders,
     });

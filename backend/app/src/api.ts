@@ -8,13 +8,14 @@
 
 // these are the required imports
 import { Router, Request, Response } from "express";
-import { getProduct, getUser, getProducts } from "./get";
+import { getProduct, getUser, getProducts, getAllProducts } from "./get";
 import { Db } from "mongodb";
 import { newProduct, newUser, newTransaction } from "./create";
 import { Product, ProductRecord, User, UserRecord, TransactionRecord } from "./interfaces";
 import { addReview, addRating, updateProduct, updateUser } from "./update";
 import { recommend_from_product } from "./recommend";
 import { randProduct, randRatings, randReviews, randTransaction, randUser } from "./generators";
+import { get } from "http";
 
 /**
  * Creates an Express router, which is used to define and handle API routes for the
@@ -40,6 +41,7 @@ export function createRouter(mongo_db: Db) {
     apiGenerateUsers(router, mongo_db);
     apiGenerateTransactions(router, mongo_db);
     apiGenerateReviews(router, mongo_db);
+    apiGetAllProducts(router, mongo_db);
     return router;
 }
 
@@ -280,6 +282,14 @@ function apiPutUser(router: Router, mongo_db: Db) {
 function apiGetProducts(router: Router, mongo_db: Db) {
     router.get("/products/:number", (req: Request, res: Response) => {
         getProducts(parseInt(req.params.number), mongo_db)
+            .then((products) => res.json(products))
+            .catch((_) => res.status(404).send("Not Found\n"));
+    });
+}
+
+function apiGetAllProducts(router: Router, mongo_db: Db) {
+    router.get("/products/all", (res: Response) => {
+        getAllProducts(mongo_db)
             .then((products) => res.json(products))
             .catch((_) => res.status(404).send("Not Found\n"));
     });

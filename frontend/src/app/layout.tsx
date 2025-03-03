@@ -12,6 +12,7 @@ import "./globals.css";
 import { Header } from "./header";
 import { RightSide } from "./right_side_component";
 import { LeftSide } from "./left_side_pane";
+import { SearchProvider } from "./searchContext";
 
 // define the fonts used
 const geistSans = localFont({
@@ -43,7 +44,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable}`}>
-                <div className="layout">
+                <SearchProvider>
                     <Header />
                     <div className="flex h-full">
                         <LeftSide>{children}</LeftSide>
@@ -51,7 +52,7 @@ export default function RootLayout({
                             <RightSide />
                         </div>
                     </div>
-                </div>
+                </SearchProvider>
             </body>
         </html>
     );
