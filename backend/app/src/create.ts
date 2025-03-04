@@ -6,11 +6,10 @@
  */
 
 // these are the required imports
-import { EagerResult } from "neo4j-driver";
 import { neoDriver, sanitize, post_pass, redis } from "./index";
 import { UserRecord, ProductRecord, TransactionRecord, User, Product } from "./interfaces";
 import { Db } from "mongodb";
-import { Pool } from "pg";
+import { Client } from "pg";
 import { getPostgressAddress, getPostgressAddressToSend } from "./shard";
 
 /**
@@ -36,16 +35,18 @@ export async function newUser(ur: UserRecord, u: User, mongo_db: Db) {
     }
 
     // checks to see if there is a database that stores a user's id already
-    const checkUsernameAvailibilityPromise = getPostgressAddress("u" + ur.username).then((addr) => {
+    const checkUsernameAvailibilityPromise = getPostgressAddress("u" + ur.username).then(async (addr) => {
         if (addr !== null) {
             throw new Error("Username exists in database: " + addr);
         }
-        return new Pool({
+        const db = new Client({
             user: "postgres",
             host: getPostgressAddressToSend(),
             password: post_pass,
             port: 5432,
         });
+        await db.connect();
+        return db;
     });
 
     // compose the query in an acceptable manner to insert a user record
@@ -56,7 +57,10 @@ export async function newUser(ur: UserRecord, u: User, mongo_db: Db) {
         .then((db) =>
             db
                 .query(userInsert)
-                .then(() => console.log(`Inserted ${ur.username} into USERS`))
+                .then(() => {
+                    console.log(`Inserted ${ur.username} into USERS`);
+                    return db.end();
+                })
                 .catch((error) => {
                     if (error.code === "23505") {
                         console.log(`The username '${ur.username}' already exists, try another username.`);
@@ -112,16 +116,18 @@ export async function newProduct(pr: ProductRecord, p: Product, mongo_db: Db) {
     // checks to see if we already store a postgres address containing the
     // requested transaction id. Returns a database connection if there is no
     // transaction already
-    const checkProductAvailabilityPromise = getPostgressAddress("p" + pr.productId).then((addr) => {
+    const checkProductAvailabilityPromise = getPostgressAddress("p" + pr.productId).then(async (addr) => {
         if (addr !== null) {
             throw new Error("Product ID already exists in database " + addr);
         }
-        return new Pool({
+        const db = new Client({
             user: "postgres",
             host: getPostgressAddressToSend(),
             password: post_pass,
             port: 5432,
         });
+        await db.connect();
+        return db;
     });
 
     // execute the query
@@ -131,7 +137,10 @@ export async function newProduct(pr: ProductRecord, p: Product, mongo_db: Db) {
             .then((db) =>
                 db
                     .query(productInsert)
-                    .then(() => console.log(`Inserted ${pr.productId} into PRODUCTS.`))
+                    .then(() => {
+                        console.log(`Inserted ${pr.productId} into PRODUCTS.`);
+                        return db.end();
+                    })
                     .catch(async (err) => {
                         console.log("Postgres rejected query: ", productInsert, "\nwith error: ", err);
                         await redis.decr("curr_product_id");
@@ -189,24 +198,30 @@ export async function newTransaction(t: TransactionRecord, mongo_db: Db) {
     // checks to see if we already store a postgres address containing the
     // requested transaction id. Returns a database connection if there is no
     // transaction already
-    const checkTransactionAvailabilityPromise = getPostgressAddress("t" + t.transactionId).then((addr) => {
+    const checkTransactionAvailabilityPromise = getPostgressAddress("t" + t.transactionId).then(async (addr) => {
         if (addr !== null) {
             throw new Error("Transaction ID already exists in database " + addr);
         }
-        return new Pool({
+        const db = new Client({
             user: "postgres",
             host: getPostgressAddressToSend(),
             password: post_pass,
             port: 5432,
         });
+        await db.connect();
+        return db;
     });
 
     // execute the query
     return (
         checkTransactionAvailabilityPromise
             .then((db) => {
-                db.query(transactionInsert)
-                    .then(() => console.log(`Inserted ${curr_tid} into TRANSACTIONS`))
+                return db
+                    .query(transactionInsert)
+                    .then(() => {
+                        console.log(`Inserted ${curr_tid} into TRANSACTIONS`);
+                        return db.end();
+                    })
                     .catch(async (error) => {
                         if (error.code) {
                             console.log("Postgres rejected query: ", transactionInsert, "\nwith error: ", error);
