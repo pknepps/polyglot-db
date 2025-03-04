@@ -1,3 +1,6 @@
+import { readFileSync } from "fs";
+import { createClient } from "redis";
+
 /** 
  * A frequency map of each type of database which holds each shard address and 
  * the number of items it stores.
@@ -12,6 +15,25 @@ const dbMap: DBMap = {
     postgresMap: new Map(),
     mongoMap: new Map(),
     neo4jMap: new Map(),
+}
+
+async function connectRedis() {
+    // gets the redis password from a file
+    const redisPass: string = readFileSync("./REDIS_PASSWORD", "utf-8");
+
+    // the parts needed to create redis connection
+    // use a connection string in the format redis[s]://[[username][:password]@][host][:port][/db-number]:
+    const redisUri: string = "redis://:" + redisPass + "@pknepps.net";
+
+    const redis = createClient({ url: redisUri });
+
+    // log an error message for connection errors
+    redis.on("error", (err) => console.log("Redis Client Error", err));
+
+    // connect to server
+    await redis.connect();
+
+    return redis;
 }
 
 /**
@@ -61,8 +83,8 @@ export function getNeo4jAddressToSend(): string {
  * @param db The database name which the item is loated.
  * @returns The address of the host which holds the data.
  */
-async function getAddress(id: string, db: string): Promise<string> {
-    return "pknepps.net"
+async function getAddress(id: string, db: string): Promise<string | null> {
+    return (await connectRedis()).get(db + id);
 }
 
 /**
@@ -71,7 +93,7 @@ async function getAddress(id: string, db: string): Promise<string> {
  * @param id The id of the item to query for.
  * @returns The address of the host which holds the data.
  */
-export async function getPostgressAddress(id: string): Promise<string> {
+export async function getPostgressAddress(id: string): Promise<string | null> {
     return getAddress(id, "postgres");
 }
 
@@ -82,7 +104,7 @@ export async function getPostgressAddress(id: string): Promise<string> {
  * @param id The id of the item to query for.
  * @returns The address of the host which holds the data.
  */
-export async function getMongoAddress(id: string): Promise<string> {
+export async function getMongoAddress(id: string): Promise<string | null> {
     return getAddress(id, "mongoDB");
 }
 
@@ -92,6 +114,6 @@ export async function getMongoAddress(id: string): Promise<string> {
  * @param id The id of the item to query for.
  * @returns The address of the host which holds the data.
  */
-export async function getNeo4jAddress(id: string): Promise<string> {
+export async function getNeo4jAddress(id: string): Promise<string | null> {
     return getAddress(id, "neo4j");
 }
