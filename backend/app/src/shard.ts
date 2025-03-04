@@ -3,15 +3,15 @@
  * the number of items it stores.
  */
 interface DBMap {
-    postgresMap: Map<string, number>;
-    mongoMap: Map<string, number>;
-    neo4jMap: Map<string, number>;
+  postgresMap: Map<string, number>;
+  mongoMap: Map<string, number>;
+  neo4jMap: Map<string, number>;
 }
 
 const dbMap: DBMap = {
-    postgresMap: new Map(),
-    mongoMap: new Map(),
-    neo4jMap: new Map(),
+  postgresMap: new Map(),
+  mongoMap: new Map(),
+  neo4jMap: new Map(),
 };
 
 /**
@@ -20,13 +20,13 @@ const dbMap: DBMap = {
  * @returns The address of the shard to send new data to
  */
 function getAddressToSend(db: string): string {
-    let min: [string, number] = ["", Number.MAX_VALUE];
-    for (let entry of dbMap["postgresMap"]) {
-        if (entry[1] < min[1]) {
-            min = entry;
-        }
+  let min: [string, number] = ['', Number.MAX_VALUE];
+  for (let entry of dbMap['postgresMap']) {
+    if (entry[1] < min[1]) {
+      min = entry;
     }
-    return min[0];
+  }
+  return min[0];
 }
 
 /**
@@ -34,7 +34,7 @@ function getAddressToSend(db: string): string {
  * @returns The address of the Postgres shard to send new data to
  */
 export function getPostgressAddressToSend(): string {
-    return getAddressToSend("postgresMap");
+  return getAddressToSend('postgresMap');
 }
 
 /**
@@ -42,7 +42,7 @@ export function getPostgressAddressToSend(): string {
  * @returns The address of the MongoDB shard to send new data to.
  */
 export function getMongoAddressToSend(): string {
-    return getAddressToSend("mongoMap");
+  return getAddressToSend('mongoMap');
 }
 
 /**
@@ -50,7 +50,7 @@ export function getMongoAddressToSend(): string {
  * @returns The address of the Neo4j shard to send new data to.
  */
 export function getNeo4jAddressToSend(): string {
-    return getAddressToSend("neo4jMap");
+  return getAddressToSend('neo4jMap');
 }
 
 /**
@@ -60,8 +60,8 @@ export function getNeo4jAddressToSend(): string {
  * @param db The database name which the item is loated.
  * @returns The address of the host which holds the data.
  */
-async function getAddress(id: string, db: string): Promise<string> {
-    return "pknepps.net";
+async function getAddress(id: string, db: string): Promise<string | null> {
+  return 'pknepps.net';
 }
 
 /**
@@ -70,8 +70,8 @@ async function getAddress(id: string, db: string): Promise<string> {
  * @param id The id of the item to query for.
  * @returns The address of the host which holds the data.
  */
-export async function getPostgressAddress(id: string): Promise<string> {
-    return getAddress(id, "postgres");
+export async function getPostgressAddress(id: string): Promise<string | null> {
+  return getAddress(id, 'postgres');
 }
 
 /**
@@ -80,8 +80,8 @@ export async function getPostgressAddress(id: string): Promise<string> {
  * @param id The id of the item to query for.
  * @returns The address of the host which holds the data.
  */
-export async function getMongoAddress(id: string): Promise<string> {
-    return getAddress(id, "mongoDB");
+export async function getMongoAddress(id: string): Promise<string | null> {
+  return getAddress(id, 'mongoDB');
 }
 
 /**
@@ -90,18 +90,18 @@ export async function getMongoAddress(id: string): Promise<string> {
  * @param id The id of the item to query for.
  * @returns The address of the host which holds the data.
  */
-export async function getNeo4jAddress(id: string): Promise<string> {
-    return getAddress(id, "neo4j");
+export async function getNeo4jAddress(id: string): Promise<string | null> {
+  return getAddress(id, 'neo4j');
 }
 
 export function getAllMongoAddresses() {
-    return dbMap.mongoMap.keys();
+  return dbMap.mongoMap.keys();
 }
 
 export function getAllPostgresAddresses() {
-    return dbMap.postgresMap.keys();
+  return dbMap.postgresMap.keys();
 }
 
 export function getAllNeo4jAddresses() {
-    return dbMap.neo4jMap.keys();
+  return dbMap.neo4jMap.keys();
 }
