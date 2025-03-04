@@ -1,54 +1,48 @@
-import { readFileSync } from 'fs';
-import { createClient } from 'redis';
+import { readFileSync } from "fs";
+import { createClient } from "redis";
+import { redis } from ".";
 
 /**
  * A frequency map of each type of database which holds each shard address and
  * the number of items it stores.
  */
 interface DBMap {
-  postgresMap: Map<string, number>;
-  mongoMap: Map<string, number>;
-  neo4jMap: Map<string, number>;
+    postgresMap: Map<string, number>;
+    mongoMap: Map<string, number>;
+    neo4jMap: Map<string, number>;
 }
 
 const dbMap: DBMap = {
-  postgresMap: new Map(),
-  mongoMap: new Map(),
-  neo4jMap: new Map(),
+    postgresMap: new Map(),
+    mongoMap: new Map(),
+    neo4jMap: new Map(),
 };
-
-async function connectRedis() {
-  // gets the redis password from a file
-  const redisPass: string = readFileSync('./REDIS_PASSWORD', 'utf-8');
-
-  // the parts needed to create redis connection
-  // use a connection string in the format redis[s]://[[username][:password]@][host][:port][/db-number]:
-  const redisUri: string = 'redis://:' + redisPass + '@pknepps.net';
-
-  const redis = createClient({ url: redisUri });
-
-  // log an error message for connection errors
-  redis.on('error', (err) => console.log('Redis Client Error', err));
-
-  // connect to server
-  await redis.connect();
-
-  return redis;
-}
+// TODO: hardcoded addresses, we need to find a way to add them.
+dbMap.postgresMap.set("pknepps.net", 0);
+dbMap.mongoMap.set("pknepps.net", 0);
+dbMap.neo4jMap.set("pknepps.net", 0);
 
 /**
  * Helper method which calculates the best existing shard to send new data to.
  * @param db The name of the field in the DBMap interface to search through
  * @returns The address of the shard to send new data to
  */
-function getAddressToSend(db: string): string {
-  let min: [string, number] = ['', Number.MAX_VALUE];
-  for (let entry of dbMap['postgresMap']) {
-    if (entry[1] < min[1]) {
-      min = entry;
+function getAddressToSend(db: "postgresMap" | "mongoMap" | "neo4jMap"): string {
+    let map;
+    if (db === "postgresMap") {
+        map = dbMap.postgresMap;
+    } else if (db === "mongoMap") {
+        map = dbMap.mongoMap;
+    } else {
+        map = dbMap.neo4jMap;
     }
-  }
-  return min[0];
+    let min: [string, number] = ["", Number.MAX_VALUE];
+    for (let entry of map) {
+        if (entry[1] < min[1]) {
+            min = entry;
+        }
+    }
+    return min[0];
 }
 
 /**
@@ -56,7 +50,7 @@ function getAddressToSend(db: string): string {
  * @returns The address of the Postgres shard to send new data to
  */
 export function getPostgressAddressToSend(): string {
-  return getAddressToSend('postgresMap');
+    return getAddressToSend("postgresMap");
 }
 
 /**
@@ -64,7 +58,7 @@ export function getPostgressAddressToSend(): string {
  * @returns The address of the MongoDB shard to send new data to.
  */
 export function getMongoAddressToSend(): string {
-  return getAddressToSend('mongoMap');
+    return getAddressToSend("mongoMap");
 }
 
 /**
@@ -72,7 +66,7 @@ export function getMongoAddressToSend(): string {
  * @returns The address of the Neo4j shard to send new data to.
  */
 export function getNeo4jAddressToSend(): string {
-  return getAddressToSend('neo4jMap');
+    return getAddressToSend("neo4jMap");
 }
 
 /**
@@ -83,7 +77,7 @@ export function getNeo4jAddressToSend(): string {
  * @returns The address of the host which holds the data.
  */
 async function getAddress(id: string, db: string): Promise<string | null> {
-  return (await connectRedis()).get(db + id);
+    return redis.get(db + id);
 }
 
 /**
@@ -93,7 +87,7 @@ async function getAddress(id: string, db: string): Promise<string | null> {
  * @returns The address of the host which holds the data.
  */
 export async function getPostgressAddress(id: string): Promise<string | null> {
-  return getAddress(id, 'postgres');
+    return getAddress(id, "postgres");
 }
 
 /**
@@ -103,7 +97,7 @@ export async function getPostgressAddress(id: string): Promise<string | null> {
  * @returns The address of the host which holds the data.
  */
 export async function getMongoAddress(id: string): Promise<string | null> {
-  return getAddress(id, 'mongoDB');
+    return getAddress(id, "mongoDB");
 }
 
 /**
@@ -113,17 +107,17 @@ export async function getMongoAddress(id: string): Promise<string | null> {
  * @returns The address of the host which holds the data.
  */
 export async function getNeo4jAddress(id: string): Promise<string | null> {
-  return getAddress(id, 'neo4j');
+    return getAddress(id, "neo4j");
 }
 
 export function getAllMongoAddresses() {
-  return dbMap.mongoMap.keys();
+    return dbMap.mongoMap.keys();
 }
 
 export function getAllPostgresAddresses() {
-  return dbMap.postgresMap.keys();
+    return dbMap.postgresMap.keys();
 }
 
 export function getAllNeo4jAddresses() {
-  return dbMap.neo4jMap.keys();
+    return dbMap.neo4jMap.keys();
 }

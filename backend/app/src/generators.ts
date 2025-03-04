@@ -155,7 +155,7 @@ export async function randTransaction(n: number): Promise<TransactionRecord[]> {
     } catch (error) {
         console.log("Postgres rejected query with error: ", error);
     }
-    return new Promise((resolve, _) => resolve(transactions));
+    return transactions;
 }
 
 /**
@@ -174,9 +174,9 @@ async function getUserNames(): Promise<{ username: string }[]> {
                 });
             })
             .map((db) =>
-                db.query("SELECT username FROM USERS").then((data) => data.rows as any as { username: string })
+                db.query("SELECT username FROM USERS").then((data) => data.rows as any as { username: string }[])
             )
-    );
+    ).then((arrOfArrs) => arrOfArrs.flat());
 }
 
 /**
@@ -195,7 +195,7 @@ async function getProductIDs(): Promise<{ product_id: number }[]> {
                 });
             })
             .map((db) =>
-                db.query("SELECT product_id FROM PRODUCTS").then((data) => data.rows as any as { product_id: number })
+                db.query("SELECT product_id FROM PRODUCTS").then((data) => data.rows as any as { product_id: number }[])
             )
-    );
+    ).then((arrOfArrs) => arrOfArrs.flat());
 }
