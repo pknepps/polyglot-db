@@ -7,9 +7,10 @@
 
 // import the required modules and libraries
 import { Db } from "mongodb";
-import { db } from "./index";
 import { Product } from "./interfaces";
-import { getMongoAddress } from "./shard";
+import { getMongoAddress, getPostgressAddress } from "./shard";
+import { post_pass } from ".";
+import { Pool } from "pg";
 
 /**
  * Find and return a user based on a provided username.
@@ -51,6 +52,13 @@ export async function getProduct(pi: number, mongodb: Db) {
  * @returns A promise, either resolves the query result or rejects.
  */
 export async function getTransaction(ti: number) {
+    const address = await getPostgressAddress(ti.toString());
+    const db = new Pool({
+        user: "postgres",
+        host: address,
+        password: post_pass,
+        port: 5432,
+    });
     try {
         let q = "SELECT * FROM TRANSACTIONS WHERE transaction_id = " + String(ti) + ";";
         return await db.query(q);
