@@ -1,26 +1,27 @@
-/** 
- * The functions in this module are used to generate random date to dump into 
+/**
+ * The functions in this module are used to generate random date to dump into
  * the databases.
- * 
+ *
  * @author Preston Knepper
  * @version Oct. 2, 2024
  */
 
 // these are the required imports
-import { db } from "./index";
 import { UserRecord, ProductRecord, TransactionRecord, User, Product } from "./interfaces";
 import { faker } from "@faker-js/faker";
-import { sanitize } from "./index";
+import { post_pass, sanitize } from "./index";
+import { getAllPostgresAddresses, getPostgressAddress } from "./shard";
+import { Pool } from "pg";
 
 /** Generates a new user. **/
 export function randUser(): [UserRecord, User] {
     const firstName = sanitize(faker.person.firstName());
     const lastName = sanitize(faker.person.lastName());
     const middleName = sanitize(faker.person.middleName());
-    const userRecord : UserRecord = {
+    const userRecord: UserRecord = {
         username: firstName[0] + lastName + Math.floor(Math.random() * 100),
         firstName,
-        lastName
+        lastName,
     };
     const user: User = {
         username: userRecord.username,
@@ -31,7 +32,7 @@ export function randUser(): [UserRecord, User] {
         payments: [],
         transactions: [],
         ratings: [],
-        reviews: []
+        reviews: [],
     };
     return [userRecord, user];
 }
@@ -43,14 +44,14 @@ export function randProduct(): [ProductRecord, Product] {
     const productRecord: ProductRecord = {
         productId: 0,
         name: faker.word.adjective() + ", " + faker.word.adjective() + " " + faker.word.noun(),
-        price: parseFloat((Math.random() * 500).toFixed(2))
+        price: parseFloat((Math.random() * 500).toFixed(2)),
     };
     const product: Product = {
         product_id: productRecord.productId,
         name: productRecord.name,
         price: productRecord.price,
         ratings: [],
-        reviews: []
+        reviews: [],
     };
     return [productRecord, product];
 }
@@ -60,30 +61,32 @@ export function randProduct(): [ProductRecord, Product] {
  * @param n the number of ratings to generate. Used so that only one query needs to be made for
  *          several ratings.
  */
-export async function randRatings(n: number): Promise<{
-                                                        username: string,
-                                                        product_id: number,
-                                                        rating: number
-                                                }[]> {
-    try{       
+export async function randRatings(n: number): Promise<
+    {
+        username: string;
+        product_id: number;
+        rating: number;
+    }[]
+> {
+    try {
         const usernames = await getUserNames();
         const product_ids = await getProductIDs();
         const ratings: {
-            username: string,
-            product_id: number,
-            rating: number,
+            username: string;
+            product_id: number;
+            rating: number;
         }[] = [];
         for (let i = 0; i < n; i++) {
             const username: string = usernames[Math.floor(Math.random() * usernames.length)].username;
             const product_id = product_ids[Math.floor(Math.random() * product_ids.length)].product_id;
-                ratings.push({
+            ratings.push({
                 username,
                 product_id,
                 rating: Math.floor(Math.random() * 5),
             });
         }
         return ratings;
-    } catch(error){
+    } catch (error) {
         console.log("failed to get usernames or product id's\n");
     }
     return new Promise((resolve, reject) => reject());
@@ -94,18 +97,20 @@ export async function randRatings(n: number): Promise<{
  * @param n the number of reviews to generate. Used so that only one query needs to be made for
  *          several reviews.
  */
-export async function randReviews(n: number): Promise<{
-    username: string,
-    product_id: number,
-    review: string
-}[]> {
+export async function randReviews(n: number): Promise<
+    {
+        username: string;
+        product_id: number;
+        review: string;
+    }[]
+> {
     try {
         const usernames = await getUserNames();
         const product_ids = await getProductIDs();
         const reviews: {
-            username: string,
-            product_id: number,
-            review: string,
+            username: string;
+            product_id: number;
+            review: string;
         }[] = [];
         for (let i = 0; i < n; i++) {
             const username: string = usernames[Math.floor(Math.random() * usernames.length)].username;
@@ -113,7 +118,7 @@ export async function randReviews(n: number): Promise<{
             reviews.push({
                 username,
                 product_id,
-                review: faker.lorem.paragraph({min: 1, max: 10})
+                review: faker.lorem.paragraph({ min: 1, max: 10 }),
             });
         }
         return reviews;
@@ -131,8 +136,8 @@ export async function randReviews(n: number): Promise<{
 export async function randTransaction(n: number): Promise<TransactionRecord[]> {
     const transactions: TransactionRecord[] = [];
     try {
-        const usernames: {username: string}[]  = await getUserNames();
-        const products: {product_id: number}[] = await getProductIDs();
+        const usernames: { username: string }[] = await getUserNames();
+        const products: { product_id: number }[] = await getProductIDs();
         for (let i = 0; i < n; i++) {
             const username: string = usernames[Math.floor(Math.random() * usernames.length)].username;
             const productId: number = products[Math.floor(Math.random() * products.length)].product_id;
@@ -140,47 +145,57 @@ export async function randTransaction(n: number): Promise<TransactionRecord[]> {
                 transactionId: 0,
                 username,
                 productId,
-                cardNum: parseInt(faker.finance.creditCardNumber('################')),
+                cardNum: parseInt(faker.finance.creditCardNumber("################")),
                 address: sanitize(faker.location.streetAddress()),
                 city: sanitize(faker.location.city()),
-                state: sanitize(faker.location.state({abbreviated: true})),
-                zip: parseInt(faker.location.zipCode('#####')),
+                state: sanitize(faker.location.state({ abbreviated: true })),
+                zip: parseInt(faker.location.zipCode("#####")),
             });
         }
     } catch (error) {
         console.log("Postgres rejected query with error: ", error);
     }
-    return new Promise((resolve, _) => resolve(transactions))
+    return new Promise((resolve, _) => resolve(transactions));
 }
 
 /**
  * Helper function which queries for all active users and returns the list of usernames.
  */
-async function getUserNames(): Promise<{username: string}[]> {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const usernames: {username: string}[] = (await db.query(
-                    "SELECT username FROM USERS")
-            ).rows;
-            resolve(usernames)
-        } catch (error) {
-            reject(error)
-        }
-    });
+async function getUserNames(): Promise<{ username: string }[]> {
+    const postgresAddrs = getAllPostgresAddresses();
+    return Promise.all(
+        Array.from(postgresAddrs)
+            .map((addr) => {
+                return new Pool({
+                    user: "postgres",
+                    host: addr,
+                    password: post_pass,
+                    port: 5432,
+                });
+            })
+            .map((db) =>
+                db.query("SELECT username FROM USERS").then((data) => data.rows as any as { username: string })
+            )
+    );
 }
 
 /**
  * Helper function which queries for all active products and returns the list of product id's.
  */
-async function getProductIDs() : Promise<{product_id: number}[]> {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const product_ids: {product_id: number}[] = (await db.query(
-                "SELECT product_id FROM PRODUCTS")
-            ).rows;
-            resolve(product_ids)
-        } catch (error) {
-            reject(error)
-        }
-    });
+async function getProductIDs(): Promise<{ product_id: number }[]> {
+    const postgresAddrs = getAllPostgresAddresses();
+    return Promise.all(
+        Array.from(postgresAddrs)
+            .map((addr) => {
+                return new Pool({
+                    user: "postgres",
+                    host: addr,
+                    password: post_pass,
+                    port: 5432,
+                });
+            })
+            .map((db) =>
+                db.query("SELECT product_id FROM PRODUCTS").then((data) => data.rows as any as { product_id: number })
+            )
+    );
 }

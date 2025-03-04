@@ -21,6 +21,7 @@ import express from "express";
 import { createRouter } from "./api";
 import cors from "cors";
 import { createClient, RedisClientType } from "redis";
+import { getAllPostgresAddresses } from "./shard";
 
 // this is used to interact with the user on the command line
 const rl = readline.createInterface({
@@ -33,18 +34,12 @@ export let curr_pid: number = 0;
 // keeps track of the current transaction id, ensures unique values
 export let curr_tid: number = 0;
 // gets the postgres password from a file
-const post_pass: string = readFileSync("./POSTGRES_PASSWORD", "utf-8");
-
-// allows the connection to the postgresql server
-export const db = new Pool({
-    user: "postgres",
-    host: "pknepps.net",
-    password: post_pass,
-    port: 5432,
-});
+export const post_pass: string = readFileSync("./POSTGRES_PASSWORD", "utf-8");
+export const neo_pass: string = readFileSync("./NEO4J_PASSWORD", "utf-8");
+export const mong_pass: string = readFileSync("./MONGODB_PASSWORD", "utf-8");
+export const redisPass: string = readFileSync("./REDIS_PASSWORD", "utf-8");
 
 // gets the postgres password from a file
-const neo_pass: string = readFileSync("./NEO4J_PASSWORD", "utf-8");
 
 // creates a neo4j driver
 export const neoDriver = neo4j.driver("neo4j://pknepps.net:7687", neo4j.auth.basic("neo4j", neo_pass));
@@ -58,7 +53,6 @@ async function connectMongo(): Promise<Db> {
     let mongodb: Db | null = null;
     try {
         // gets the mongodb password from a file
-        const mong_pass: string = readFileSync("./MONGODB_PASSWORD", "utf-8");
 
         // the parts needed to create mongodb connection
         const mong_uri: string = "mongodb://mongo:" + mong_pass + "@pknepps.net/?authSource=admin";
@@ -93,7 +87,6 @@ async function connectMongo(): Promise<Db> {
 
 async function connectRedis() {
     // gets the redis password from a file
-    const redisPass: string = readFileSync("./REDIS_PASSWORD", "utf-8");
 
     // the parts needed to create redis connection
     // use a connection string in the format redis[s]://[[username][:password]@][host][:port][/db-number]:
@@ -229,16 +222,45 @@ async function caseTwo(mongo_db: Db) {
  */
 async function caseThree(mongo_db: Db) {
     let validTransaction = false;
+
+    const postgresAddrs = getAllPostgresAddresses();
+    const dbs = await Promise.all(
+        Array.from(postgresAddrs).map(
+            (addr) =>
+                new Pool({
+                    user: "postgres",
+                    host: addr,
+                    password: post_pass,
+                    port: 5432,
+                })
+        )
+    );
     while (!validTransaction) {
         try {
             const username1 = await rl.question("Enter a valid username: ");
             const product_id1 = await rl.question("Enter a valid product id: ");
 
-            // Check if username and product_id exist
-            const userCheck = await db.query(`SELECT * FROM USERS WHERE username = $1`, [username1]);
-            const productCheck = await db.query(`SELECT * FROM PRODUCTS WHERE product_id = $1`, [product_id1]);
+            // Check if username exists
+            const userCheck = (
+                await Promise.all(
+                    dbs.map((db) =>
+                        db
+                            .query(`SELECT * FROM USERS WHERE username = $1`, [username1])
+                            .then((result) => result.rowCount === 1)
+                    )
+                )
+            ).reduce((prev, current) => prev || current);
+            const productCheck = (
+                await Promise.all(
+                    dbs.map((db) =>
+                        db
+                            .query(`SELECT * FROM PRODUCTS WHERE product_id = $1`, [product_id1])
+                            .then((result) => result.rowCount === 1)
+                    )
+                )
+            ).reduce((prev, current) => prev || current);
 
-            if (userCheck.rows.length === 1 && productCheck.rows.length === 1) {
+            if (!userCheck && !productCheck) {
                 // proceed to gather transaction details
                 const card_num = await rl.question("Enter a card number: ");
                 const address = await rl.question("Enter an address: ");
@@ -440,8 +462,10 @@ async function interact(mongo_db: Db) {
 async function start() {
     const redis = await connectRedis();
     try {
-        curr_pid = (await db.query("SELECT MAX(product_id) FROM PRODUCTS;")).rows[0].max;
-        curr_tid = (await db.query("SELECT MAX(transaction_id) FROM TRANSACTIONS;")).rows[0].max;
+        // curr_pid = (await db.query("SELECT MAX(product_id) FROM PRODUCTS;")).rows[0].max;
+        // curr_tid = (await db.query("SELECT MAX(transaction_id) FROM TRANSACTIONS;")).rows[0].max;
+        curr_pid = Number((await redis.get("curr_product_id")) || 0);
+        curr_tid = Number((await redis.get("curr_transaction_id")) || 0);
         try {
             const mongodb = await connectMongo();
             console.log("Connection to mongodb established");
