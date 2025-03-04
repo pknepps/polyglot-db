@@ -6,11 +6,15 @@
  */
 
 // import the required modules and libraries
-import { Db } from "mongodb";
-import { Product } from "./interfaces";
-import { getMongoAddress, getPostgressAddress } from "./shard";
-import { post_pass } from ".";
-import { Pool } from "pg";
+import { Db } from 'mongodb';
+import {
+  getMongoAddress,
+  getMongoAddressToSend,
+  getPostgressAddress,
+  getPostgressAddressToSend,
+} from './shard';
+import { post_pass } from '.';
+import { Pool } from 'pg';
 
 /**
  * Find and return a user based on a provided username.
@@ -20,13 +24,13 @@ import { Pool } from "pg";
  * @returns A promise, either resolves the query result or rejects.
  */
 export async function getUser(un: string, mongodb: Db) {
-    const ip = await getMongoAddress(un);
-    try {
-        return await mongodb.collection("users").findOne({ username: un });
-    } catch (error) {
-        console.log("The user does not exist.");
-        return new Promise((_, reject) => reject());
-    }
+  const ip = getMongoAddressToSend();
+  try {
+    return await mongodb.collection('users').findOne({ username: un });
+  } catch (error) {
+    console.log('The user does not exist.');
+    return new Promise((_, reject) => reject());
+  }
 }
 
 /**
@@ -37,12 +41,12 @@ export async function getUser(un: string, mongodb: Db) {
  * @returns A promise, either resolves the query result or rejects.
  */
 export async function getProduct(pi: number, mongodb: Db) {
-    try {
-        return await mongodb.collection("products").findOne({ product_id: pi });
-    } catch (error) {
-        console.log("The product does not exist.");
-        return new Promise((_, reject) => reject());
-    }
+  try {
+    return await mongodb.collection('products').findOne({ product_id: pi });
+  } catch (error) {
+    console.log('The product does not exist.');
+    return new Promise((_, reject) => reject());
+  }
 }
 
 /**
@@ -52,20 +56,21 @@ export async function getProduct(pi: number, mongodb: Db) {
  * @returns A promise, either resolves the query result or rejects.
  */
 export async function getTransaction(ti: number) {
-    const address = await getPostgressAddress(ti.toString());
-    const db = new Pool({
-        user: "postgres",
-        host: address,
-        password: post_pass,
-        port: 5432,
-    });
-    try {
-        let q = "SELECT * FROM TRANSACTIONS WHERE transaction_id = " + String(ti) + ";";
-        return await db.query(q);
-    } catch (error) {
-        console.log("The transaction does not exist.");
-        return new Promise((_, reject) => reject());
-    }
+  const address = getPostgressAddressToSend();
+  const db = new Pool({
+    user: 'postgres',
+    host: address,
+    password: post_pass,
+    port: 5432,
+  });
+  try {
+    let q =
+      'SELECT * FROM TRANSACTIONS WHERE transaction_id = ' + String(ti) + ';';
+    return await db.query(q);
+  } catch (error) {
+    console.log('The transaction does not exist.');
+    return new Promise((_, reject) => reject());
+  }
 }
 
 /**
@@ -74,10 +79,10 @@ export async function getTransaction(ti: number) {
  * @param mongodb The mongo database to query
  */
 export async function getProducts(n: number, mongodb: Db) {
-    try {
-        return mongodb.collection("products").find({}).limit(n).toArray();
-    } catch (e) {
-        console.log(`There was a problem querying products from MongoDB, ${e}`);
-        return new Promise((_, reject) => reject());
-    }
+  try {
+    return mongodb.collection('products').find({}).limit(n).toArray();
+  } catch (e) {
+    console.log(`There was a problem querying products from MongoDB, ${e}`);
+    return new Promise((_, reject) => reject());
+  }
 }

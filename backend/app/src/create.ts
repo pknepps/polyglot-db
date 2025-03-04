@@ -7,15 +7,7 @@
 
 // these are the required imports
 import { EagerResult } from 'neo4j-driver';
-import {
-  curr_pid,
-  curr_tid,
-  increment,
-  neoDriver,
-  sanitize,
-  decrement,
-  post_pass,
-} from './index';
+import { neoDriver, sanitize, post_pass, redis } from './index';
 import {
   UserRecord,
   ProductRecord,
@@ -56,13 +48,12 @@ export function newUser(ur: UserRecord, u: User, mongo_db: Db) {
     if (addr !== null) {
       throw new Error('Username exists in database: ' + addr);
     }
-  });
-
-  const db = new Pool({
-    user: 'postgres',
-    host: getPostgressAddressToSend(),
-    password: post_pass,
-    port: 5432,
+    return new Pool({
+      user: 'postgres',
+      host: getPostgressAddressToSend(),
+      password: post_pass,
+      port: 5432,
+    });
   });
 
   // compose the query in an acceptable manner to insert a user record
@@ -70,7 +61,7 @@ export function newUser(ur: UserRecord, u: User, mongo_db: Db) {
         VALUES ('${ur.username}', '${ur.firstName}', '${ur.lastName}');`;
   // do the actual query in the postgreSQL database
   return checkUsernameAvailibilityPromise
-    .then(() =>
+    .then((db) =>
       db
         .query(userInsert)
         .then(() => console.log(`Inserted ${ur.username} into USERS`))
@@ -129,7 +120,7 @@ export function newProduct(pr: ProductRecord, p: Product, mongo_db: Db) {
   }
 
   // increment the current pid
-  increment('curr_pid');
+  const curr_pid = redis.increment('curr_product_id');
   pr.productId = curr_pid;
   p.product_id = curr_pid;
 
@@ -171,7 +162,7 @@ export function newProduct(pr: ProductRecord, p: Product, mongo_db: Db) {
               '\nwith error: ',
               err
             );
-            decrement('curr_pid');
+            redis.decrement('curr_product_id');
             throw err;
           })
       )
@@ -224,7 +215,7 @@ export function newProduct(pr: ProductRecord, p: Product, mongo_db: Db) {
  */
 export function newTransaction(t: TransactionRecord, mongo_db: Db) {
   // increment the transaction id
-  increment('curr_tid');
+  const curr_tid = redis.increment('curr_transaction_id');
   t.transactionId = curr_tid;
 
   // compose the query in an acceptable manner to insert a transaction
@@ -269,6 +260,7 @@ export function newTransaction(t: TransactionRecord, mongo_db: Db) {
                 error
               );
             }
+            redis.decrement('curr_transaction_id');
             throw error;
           });
       })
