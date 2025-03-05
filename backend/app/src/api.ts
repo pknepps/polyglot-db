@@ -292,13 +292,15 @@ function apiGetProducts(router: Router, mongo_db: Db) {
  * @param mongo_db The mongo database to query.
  */
 function apiGenerateUsers(router: Router, mongo_db: Db) {
-    router.post("/generate/users", (req: Request, res: Response) => {
+    router.post("/generate/users", async (req: Request, res: Response) => {
         try {
             const { quantity } = req.body;
+            const newUserPromises = [];
             for (let i = 0; i < quantity; i++) {
                 let [userRecord, user] = randUser();
-                newUser(userRecord, user, mongo_db);
+                newUserPromises.push(newUser(userRecord, user, mongo_db));
             }
+            await Promise.all(newUserPromises);
             const successMessage = `Inserted ${quantity} random users into the USERS table.`;
             console.log(successMessage);
             res.status(200).send(successMessage);
@@ -316,13 +318,15 @@ function apiGenerateUsers(router: Router, mongo_db: Db) {
  * @param mongo_db The mongo database to query.
  */
 function apiGenerateProducts(router: Router, mongo_db: Db) {
-    router.post("/generate/products", (req: Request, res: Response) => {
+    router.post("/generate/products", async (req: Request, res: Response) => {
         try {
             const { quantity } = req.body;
+            const newProductPromises = [];
             for (let i = 0; i < quantity; i++) {
                 let [productRecord, product] = randProduct();
-                newProduct(productRecord, product, mongo_db);
+                newProductPromises.push(newProduct(productRecord, product, mongo_db));
             }
+            await Promise.all(newProductPromises);
             const successMessage = `Inserted ${quantity} random products into the PRODUCTS table.`;
             console.log(successMessage);
             res.status(200).send(successMessage);
@@ -340,11 +344,11 @@ function apiGenerateProducts(router: Router, mongo_db: Db) {
  * @param mongo_db The mongo database to query.
  */
 function apiGenerateTransactions(router: Router, mongo_db: Db) {
-    router.post("/generate/transactions", (req: Request, res: Response) => {
+    router.post("/generate/transactions", async (req: Request, res: Response) => {
         const { quantity } = req.body;
-        randTransaction(quantity)
-            .then((result) => {
-                result.map((transaction) => newTransaction(transaction, mongo_db));
+        await randTransaction(quantity)
+            .then(async (result) => {
+                await Promise.all(result.map((transaction) => newTransaction(transaction, mongo_db)));
                 const successMessage = `Inserted ${quantity} random transactions into the TRANSACTIONS table.`;
                 console.log(successMessage);
                 res.status(200).send(successMessage);
@@ -364,23 +368,23 @@ function apiGenerateTransactions(router: Router, mongo_db: Db) {
  * @param mongo_db The mongo database to query.
  */
 function apiGenerateReviews(router: Router, mongo_db: Db) {
-    router.post("/generate/reviews", (req: Request, res: Response) => {
+    router.post("/generate/reviews", async (req: Request, res: Response) => {
         const { quantity } = req.body;
         const ratingsPromise = randRatings(quantity)
-            .then((result) => {
-                result.map((rating) => addRating(rating, mongo_db));
+            .then(async (result) => {
+                await Promise.all(result.map((rating) => addRating(rating, mongo_db)));
                 console.log(`Added ${quantity} random ratings to users and products.`);
             })
             .catch((e) => console.log("An exception has occurred while updating users and products: ", e));
         const reviewPromise = randReviews(quantity)
-            .then((result) => {
-                result.map((review) => addReview(review, mongo_db));
+            .then(async (result) => {
+                await Promise.all(result.map((review) => addReview(review, mongo_db)));
                 console.log(`Added ${quantity} random reviews to users and products.`);
             })
             .catch((e) => {
                 console.log("An exception has occurred while updating users and products: ", e);
             });
-        Promise.all([ratingsPromise, reviewPromise])
+        await Promise.all([ratingsPromise, reviewPromise])
             .then((_) => {
                 res.status(200).send(`Added ${quantity} random ratings and reviews to users and products.`);
             })

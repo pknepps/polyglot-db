@@ -1,6 +1,9 @@
 import { readFileSync } from "fs";
 import { createClient } from "redis";
-import { redis } from ".";
+import { post_pass, redis } from ".";
+import { Pool } from "pg";
+import { Db } from "mongodb";
+import { Driver } from "neo4j-driver";
 
 /**
  * A frequency map of each type of database which holds each shard address and
@@ -17,6 +20,12 @@ const dbMap: DBMap = {
     mongoMap: new Map(),
     neo4jMap: new Map(),
 };
+
+// caches connections to databases
+export const pgConnections: Map<string, Pool> = new Map();
+export const mongoConnections: Map<string, Db> = new Map();
+export const neo4jConnections: Map<string, Driver> = new Map();
+
 // TODO: hardcoded addresses, we need to find a way to add them.
 dbMap.postgresMap.set("pknepps.net", 0);
 dbMap.mongoMap.set("pknepps.net", 0);
@@ -49,15 +58,50 @@ function getAddressToSend(db: "postgresMap" | "mongoMap" | "neo4jMap"): string {
  * Calculates the best existing Postgres shard to send new data to.
  * @returns The address of the Postgres shard to send new data to
  */
-export function getPostgressAddressToSend(): string {
-    return getAddressToSend("postgresMap");
+export function getPostgressConnection(): Pool {
+    const addr = getAddressToSend("postgresMap");
+    if (pgConnections.get(addr) === undefined) {
+        pgConnections.set(
+            addr,
+            new Pool({
+                user: "postgres",
+                host: addr,
+                password: post_pass,
+                port: 5432,
+            })
+        );
+    }
+    return pgConnections.get(addr)!;
+}
+
+function syncPostgressConnectionMap() {
+    if (pgConnections.size !== dbMap.postgresMap.size) {
+        for (let addr of dbMap.postgresMap.keys()) {
+            if (pgConnections.get(addr) === undefined) {
+                pgConnections.set(
+                    addr,
+                    new Pool({
+                        user: "postgres",
+                        host: addr,
+                        password: post_pass,
+                        port: 5432,
+                    })
+                );
+            }
+        }
+    }
+}
+
+export function getAllPostgressConnections(): Pool[] {
+    syncPostgressConnectionMap();
+    return Array.from(pgConnections.values());
 }
 
 /**
  * Calculates the best existing MongoDB shard to send new data to.
  * @returns The address of the MongoDB shard to send new data to.
  */
-export function getMongoAddressToSend(): string {
+export function getMongoConnection(): string {
     return getAddressToSend("mongoMap");
 }
 

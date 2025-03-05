@@ -21,7 +21,7 @@ import express from "express";
 import { createRouter } from "./api";
 import cors from "cors";
 import { createClient, RedisClientType } from "redis";
-import { getAllPostgresAddresses } from "./shard";
+import { getAllPostgresAddresses, getAllPostgressConnections, pgConnections } from "./shard";
 
 // this is used to interact with the user on the command line
 const rl = readline.createInterface({
@@ -194,18 +194,7 @@ async function caseTwo(mongo_db: Db) {
 async function caseThree(mongo_db: Db) {
     let validTransaction = false;
 
-    const postgresAddrs = getAllPostgresAddresses();
-    const dbs = await Promise.all(
-        Array.from(postgresAddrs).map(
-            (addr) =>
-                new Pool({
-                    user: "postgres",
-                    host: addr,
-                    password: post_pass,
-                    port: 5432,
-                })
-        )
-    );
+    const dbs = getAllPostgressConnections();
     while (!validTransaction) {
         try {
             const username1 = await rl.question("Enter a valid username: ");

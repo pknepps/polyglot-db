@@ -11,7 +11,7 @@ import { neoDriver, sanitize, post_pass, redis } from "./index";
 import { UserRecord, ProductRecord, TransactionRecord, User, Product } from "./interfaces";
 import { Db } from "mongodb";
 import { Pool } from "pg";
-import { getPostgressAddress, getPostgressAddressToSend } from "./shard";
+import { getPostgressAddress, getPostgressConnection } from "./shard";
 
 /**
  * This is responsible for creating a new user.
@@ -40,12 +40,7 @@ export async function newUser(ur: UserRecord, u: User, mongo_db: Db) {
         if (addr !== null) {
             throw new Error("Username exists in database: " + addr);
         }
-        return new Pool({
-            user: "postgres",
-            host: getPostgressAddressToSend(),
-            password: post_pass,
-            port: 5432,
-        });
+        return getPostgressConnection();
     });
 
     // compose the query in an acceptable manner to insert a user record
@@ -116,12 +111,7 @@ export async function newProduct(pr: ProductRecord, p: Product, mongo_db: Db) {
         if (addr !== null) {
             throw new Error("Product ID already exists in database " + addr);
         }
-        return new Pool({
-            user: "postgres",
-            host: getPostgressAddressToSend(),
-            password: post_pass,
-            port: 5432,
-        });
+        return getPostgressConnection();
     });
 
     // execute the query
@@ -193,19 +183,15 @@ export async function newTransaction(t: TransactionRecord, mongo_db: Db) {
         if (addr !== null) {
             throw new Error("Transaction ID already exists in database " + addr);
         }
-        return new Pool({
-            user: "postgres",
-            host: getPostgressAddressToSend(),
-            password: post_pass,
-            port: 5432,
-        });
+        return getPostgressConnection();
     });
 
     // execute the query
     return (
         checkTransactionAvailabilityPromise
-            .then((db) => {
-                db.query(transactionInsert)
+            .then((db) =>
+                db
+                    .query(transactionInsert)
                     .then(() => console.log(`Inserted ${curr_tid} into TRANSACTIONS`))
                     .catch(async (error) => {
                         if (error.code) {
@@ -215,8 +201,8 @@ export async function newTransaction(t: TransactionRecord, mongo_db: Db) {
                         }
                         await redis.decr("curr_transaction_id");
                         throw error;
-                    });
-            })
+                    })
+            )
             // if the transaction is able to be updated successfully then we need to update the
             // corresponding user's information
             // the address object and payment object
