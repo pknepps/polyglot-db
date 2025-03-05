@@ -21,6 +21,7 @@ import express from "express";
 import { createRouter } from "./api";
 import cors from "cors";
 import { createClient, RedisClientType } from "redis";
+import { getAllPostgresAddresses } from "./shard";
 
 // this is used to interact with the user on the command line
 const rl = readline.createInterface({
@@ -439,6 +440,7 @@ async function interact(mongo_db: Db) {
  */
 async function start() {
     const redis = await connectRedis();
+    console.log(await getAllPostgresAddresses());
     try {
         curr_pid = (await db.query("SELECT MAX(product_id) FROM PRODUCTS;")).rows[0].max;
         curr_tid = (await db.query("SELECT MAX(transaction_id) FROM TRANSACTIONS;")).rows[0].max;

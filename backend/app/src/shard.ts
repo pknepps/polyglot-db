@@ -43,9 +43,9 @@ async function connectRedis() {
  * @param db The name of the field in the DBMap interface to search through 
  * @returns The address of the  shard to send new data to
  */
-function getAddressToSend(db: string): string {
+function getAddressToSend(db: "postgres" | "mongoDB" | "neo4j"): string {
     let min: [string, number] = ["", Number.MAX_VALUE];
-    for (let entry of dbMap["postgresMap"]) {
+    for (let entry of dbMap[db]) {
         if (entry[1] < min[1]) {
             min = entry;
         }
@@ -128,7 +128,7 @@ export async function getNeo4jAddress(id: string): Promise<string | null> {
  */
 async function setAddress(id: string, db: "postgres" | "mongoDB" | "neo4j", address: string) {
     const frequency = dbMap[db].get(address);
-    dbMap[db].set(address, frequency ? frequency + 1 : 1);
+    dbMap[db].set(address, frequency || 0);
     (await redis).set(db + id, address);
 }
 
