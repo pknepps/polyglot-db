@@ -6,16 +6,18 @@ import { createClient } from "redis";
  * the number of items it stores.
  */
 interface DBMap {
-    postgresMap: Map<string, number>,
-    mongoMap: Map<string, number>,
-    neo4jMap: Map<string, number>,
+    postgres: Map<string, number>,
+    mongoDB: Map<string, number>,
+    neo4j: Map<string, number>,
 }
 
 const dbMap: DBMap = {
-    postgresMap: new Map(),
-    mongoMap: new Map(),
-    neo4jMap: new Map(),
+    postgres: new Map(),
+    mongoDB: new Map(),
+    neo4j: new Map(),
 }
+
+const redis = connectRedis();
 
 async function connectRedis() {
     // gets the redis password from a file
@@ -56,7 +58,7 @@ function getAddressToSend(db: string): string {
  * @returns The address of the Postgres shard to send new data to
  */
 export function getPostgressAddressToSend(): string {
-    return getAddressToSend("postgresMap");
+    return getAddressToSend("postgres");
 }
 
 
@@ -65,7 +67,7 @@ export function getPostgressAddressToSend(): string {
  * @returns The address of the MongoDB shard to send new data to.
  */
 export function getMongoAddressToSend(): string {
-    return getAddressToSend("mongoMap");
+    return getAddressToSend("mongoDB");
 }
 
 /**
@@ -73,7 +75,7 @@ export function getMongoAddressToSend(): string {
  * @returns The address of the Neo4j shard to send new data to.
  */
 export function getNeo4jAddressToSend(): string {
-    return getAddressToSend("neo4jMap");
+    return getAddressToSend("neo4j");
 }
 
 /**
@@ -84,7 +86,7 @@ export function getNeo4jAddressToSend(): string {
  * @returns The address of the host which holds the data.
  */
 async function getAddress(id: string, db: string): Promise<string | null> {
-    return (await connectRedis()).get(db + id);
+    return (await redis).get(db + id);
 }
 
 /**
@@ -116,4 +118,78 @@ export async function getMongoAddress(id: string): Promise<string | null> {
  */
 export async function getNeo4jAddress(id: string): Promise<string | null> {
     return getAddress(id, "neo4j");
+}
+
+/**
+ * Stores the address of the given item id in the redis database.
+ * @param id The id of the item to store.
+ * @param db The database name the item is stored in.
+ * @param address The address the item is located in.
+ */
+async function setAddress(id: string, db: "postgres" | "mongoDB" | "neo4j", address: string) {
+    const frequency = dbMap[db].get(address);
+    dbMap[db].set(address, frequency ? frequency + 1 : 1);
+    (await redis).set(db + id, address);
+}
+
+/**
+ * Stores the address of the given item id (stored in a Postgres shard) in the redis database.
+ * @param id The id of the item to store.
+ * @param address The address the item is located in.
+ */
+export async function setPostgressAddress(id: string, address: string) {
+    setAddress(id, "postgres", address);
+}
+
+/**
+ * Stores the address of the given item id (stored in a MongoDB shard) in the redis database.
+ * @param id The id of the item to store.
+ * @param address The address the item is located in.
+ */
+export async function setMongoAddress(id: string, address: string) {
+    setAddress(id, "mongoDB", address);
+}
+
+/**
+ * Stores the address of the given item id (stored in a Neo4j shard) in the redis database.
+ * @param id The id of the item to store.
+ * @param address The address the item is located in.
+ */
+export async function setNeo4jAddress(id: string, address: string) {
+    setAddress(id, "neo4j", address);
+}
+
+/**
+ * Helper which gets each unique address of the given database shards.
+ * @param db The database name.
+ * @returns A list of addresses.
+ */
+async function getAllAddresses(db: "postgres" | "mongoDB" | "neo4j"): Promise<string[]> {
+    const keys: string[] = await (await redis).keys(db + "*");
+    return [...new Set(keys)];
+}
+
+/**
+ * Helper which gets each unique address of the Postgres shards.
+ * @param db The database name.
+ * @returns A list of addresses.
+ */
+export async function getAllPostgresAddresses(): Promise<string[]> {
+    return getAllAddresses("postgres");
+}
+
+/**
+ * Helper which gets each unique address of the MongoDB shards.
+ * @returns A list of addresses.
+ */
+export async function getAllMongoAddresses(): Promise<string[]> {
+    return getAllAddresses("mongoDB");
+}
+
+/**
+ * Helper which gets each unique address of the Neo4j shards.
+ * @returns A list of addresses.
+ */
+export async function getAllNeo4jAddresses(): Promise<string[]> {
+    return getAllAddresses("neo4j");
 }
