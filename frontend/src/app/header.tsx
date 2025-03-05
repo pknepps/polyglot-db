@@ -27,6 +27,7 @@ export function Header() {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [error, setError] = useState("");
     const { setSearchQuery } = useContext(SearchContext);
+    const [searchInput, setSearchInput] = useState("");
 
     // open the login modal
     const openLoginModal = () => {
@@ -75,14 +76,20 @@ export function Header() {
     };
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchInput(e.target.value);
         setSearchQuery(e.target.value);
+    };
+
+    const handleHomeClick = () => {
+        setSearchQuery(""); 
+        setSearchInput("");
     };
 
     // the html for the header
     return (
         <header className="bg-sky-600 flex flex-row justify-between align-middle py-2 px-4">
             <div className="header-buttons">
-                <button className="btn">Home</button>
+                <button className="btn" onClick={handleHomeClick}>Home</button>
                 {currentUser ? (
                     <button className="btn" onClick={openUserInfoModal}>
                         {currentUser.username}
@@ -116,6 +123,7 @@ export function Header() {
                     type="text" 
                     className="search-bar w-s lg:w-md" 
                     placeholder="Search Products..." 
+                    value={searchInput}
                     onChange={handleSearch}
                 />
             </div>
