@@ -8,7 +8,7 @@
 
 // these are the required imports
 import { Router, Request, Response } from "express";
-import { getProduct, getUser, getProducts, getAllProducts } from "./get";
+import { getProduct, getUser, getProducts, getAllProducts, getNeoGraph } from "./get";
 import { Db } from "mongodb";
 import { newProduct, newUser, newTransaction } from "./create";
 import { Product, ProductRecord, User, UserRecord, TransactionRecord } from "./interfaces";
@@ -42,6 +42,7 @@ export function createRouter(mongo_db: Db) {
     apiGenerateTransactions(router, mongo_db);
     apiGenerateReviews(router, mongo_db);
     apiGetAllProducts(router, mongo_db);
+    apiGetNeoGraph(router);
     return router;
 }
 
@@ -58,6 +59,24 @@ function apiGetProduct(router: Router, mongo_db: Db) {
         getProduct(id, mongo_db)
             .then((product) => res.json(product))
             .catch((_) => res.status(404).send("Not Found.\n"));
+    });
+}
+
+/**
+ * Adds a route to get the Neo4j graph data for the given product id.
+ * 
+ * @param router The Express router to add the request to.
+ */
+function apiGetNeoGraph(router: Router) {
+    router.get("/neo/graph/:pid", async (req: Request, res: Response) => {
+        const pid = Number(req.params.pid);
+        try {
+            const graph = await getNeoGraph(pid);
+            res.json(graph);
+        } catch (error) {
+            console.error('Error fetching Neo4j graph data:', error);
+            res.status(500).send("Internal Server Error");
+        }
     });
 }
 
@@ -279,6 +298,12 @@ function apiPutUser(router: Router, mongo_db: Db) {
     });
 }
 
+/**
+ * Adds a route to get the first n products in the database. 
+ * 
+ * @param router The Express router to add the request to.
+ * @param mongo_db The mongo database to query.
+ */
 function apiGetProducts(router: Router, mongo_db: Db) {
     router.get("/products/:number", (req: Request, res: Response) => {
         getProducts(parseInt(req.params.number), mongo_db)
@@ -287,6 +312,12 @@ function apiGetProducts(router: Router, mongo_db: Db) {
     });
 }
 
+/**
+ * Adds a route to get all products in the database.
+ * 
+ * @param router The Express router to add the request to.
+ * @param mongo_db The mongo database to query.
+ */
 function apiGetAllProducts(router: Router, mongo_db: Db) {
     router.get("/products/all", (res: Response) => {
         getAllProducts(mongo_db)

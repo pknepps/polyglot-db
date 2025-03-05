@@ -7,7 +7,7 @@
 
 // import the required modules and libraries
 import {Db} from "mongodb";
-import {db} from "./index";
+import {db, neoDriver} from "./index";
 import {Product} from "./interfaces";
 
 /**
@@ -60,8 +60,9 @@ export async function getTransaction(ti: number){
 
 /**
  * Returns the first n products in the database.
+ * 
  * @param n The number of products to get.
- * @param mongodb The mongo database to query
+ * @param mongodb The mongo database to query.
  */
 export async function getProducts(n: number, mongodb: Db) {
     try {
@@ -74,6 +75,7 @@ export async function getProducts(n: number, mongodb: Db) {
 
 /**
  * Returns the count of documents in the products collection.
+ * 
  * @param mongodb The mongo database to query
  * @returns The count of documents in the products collection.
  */
@@ -83,5 +85,33 @@ export async function getAllProducts(mongodb: Db) {
     } catch (e) {
         console.log(`There was a problem querying products from MongoDB, ${e}`)
         return new Promise((_, reject) => reject());
+    }
+}
+
+/**
+ * Returns the result of the neo4j query for a specidic product.
+ * 
+ * @param pid The product number we are looking at.
+ * @returns The product and its connected nodes.
+ */
+export async function getNeoGraph(pid: number) {
+    let session = neoDriver.session();
+    try {
+        let result = await session.run("MATCH (p:Product {product_id: $pid})-[r]-(b) RETURN p, r, b", {pid});
+        result.records.forEach(record => {
+            const p = record.get('p');
+            const b = record.get('b');
+            const r = record.get('r');
+
+            console.log('Product Node:', p.properties);
+            console.log('Related Node:', b.properties);
+            console.log('Relationship:', r.type);
+        });
+        // return result.records;
+    } catch (e) {
+        console.log(`There was a problem querying the Neo4j graph, ${e}`)
+        return new Promise((_, reject) => reject());
+    } finally {
+        session.close();
     }
 }
