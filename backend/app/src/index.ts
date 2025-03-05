@@ -11,7 +11,7 @@ import { randProduct, randRatings, randReviews, randTransaction, randUser } from
 import { Product, ProductRecord, TransactionRecord, User, UserRecord } from "./interfaces";
 import { newProduct, newTransaction, newUser } from "./create";
 import { addRating, addReview } from "./update";
-import { Client } from "pg";
+import { Pool } from "pg";
 import { readFileSync } from "fs";
 import * as readline from "readline/promises";
 import { Db, MongoClient } from "mongodb";
@@ -20,7 +20,7 @@ import { recommend_from_product } from "./recommend";
 import express from "express";
 import { createRouter } from "./api";
 import cors from "cors";
-import { createClient } from "redis";
+import { createClient, RedisClientType } from "redis";
 import { getAllPostgresAddresses } from "./shard";
 
 // this is used to interact with the user on the command line
@@ -61,6 +61,7 @@ async function connectMongo(): Promise<Db> {
         // create a new mongo client
         const client = new MongoClient(mong_uri);
 
+        // console.log(client);
         // connect to the client
         try {
             await client.connect();
@@ -195,18 +196,16 @@ async function caseThree(mongo_db: Db) {
 
     const postgresAddrs = getAllPostgresAddresses();
     const dbs = await Promise.all(
-        Array.from(postgresAddrs).map(async (addr) => {
-            const db = new Client({
-                user: "postgres",
-                host: addr,
-                password: post_pass,
-                port: 5432,
-            });
-            await db.connect();
-            return db;
-        })
+        Array.from(postgresAddrs).map(
+            (addr) =>
+                new Pool({
+                    user: "postgres",
+                    host: addr,
+                    password: post_pass,
+                    port: 5432,
+                })
+        )
     );
-
     while (!validTransaction) {
         try {
             const username1 = await rl.question("Enter a valid username: ");
@@ -231,10 +230,6 @@ async function caseThree(mongo_db: Db) {
                     )
                 )
             ).reduce((prev, current) => prev || current);
-
-            for (let db of dbs) {
-                db.end();
-            }
 
             if (!userCheck && !productCheck) {
                 // proceed to gather transaction details

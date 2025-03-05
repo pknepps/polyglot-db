@@ -11,7 +11,7 @@ import { UserRecord, ProductRecord, TransactionRecord, User, Product } from "./i
 import { faker } from "@faker-js/faker";
 import { post_pass, sanitize } from "./index";
 import { getAllPostgresAddresses, getPostgressAddress } from "./shard";
-import { Client } from "pg";
+import { Pool } from "pg";
 
 /** Generates a new user. **/
 export function randUser(): [UserRecord, User] {
@@ -164,18 +164,18 @@ export async function randTransaction(n: number): Promise<TransactionRecord[]> {
 async function getUserNames(): Promise<{ username: string }[]> {
     const postgresAddrs = getAllPostgresAddresses();
     return Promise.all(
-        Array.from(postgresAddrs).map(async (addr) => {
-            const db = new Client({
-                user: "postgres",
-                host: addr,
-                password: post_pass,
-                port: 5432,
-            });
-            await db.connect();
-            const data = await db.query("SELECT username FROM USERS");
-            await db.end();
-            return data.rows as any as { username: string }[];
-        })
+        Array.from(postgresAddrs)
+            .map((addr) => {
+                return new Pool({
+                    user: "postgres",
+                    host: addr,
+                    password: post_pass,
+                    port: 5432,
+                });
+            })
+            .map((db) =>
+                db.query("SELECT username FROM USERS").then((data) => data.rows as any as { username: string }[])
+            )
     ).then((arrOfArrs) => arrOfArrs.flat());
 }
 
@@ -185,17 +185,17 @@ async function getUserNames(): Promise<{ username: string }[]> {
 async function getProductIDs(): Promise<{ product_id: number }[]> {
     const postgresAddrs = getAllPostgresAddresses();
     return Promise.all(
-        Array.from(postgresAddrs).map(async (addr) => {
-            const db = new Client({
-                user: "postgres",
-                host: addr,
-                password: post_pass,
-                port: 5432,
-            });
-            await db.connect();
-            const data = await db.query("SELECT product_id FROM PRODUCTS");
-            await db.end();
-            return data.rows as any as { product_id: number }[];
-        })
+        Array.from(postgresAddrs)
+            .map((addr) => {
+                return new Pool({
+                    user: "postgres",
+                    host: addr,
+                    password: post_pass,
+                    port: 5432,
+                });
+            })
+            .map((db) =>
+                db.query("SELECT product_id FROM PRODUCTS").then((data) => data.rows as any as { product_id: number }[])
+            )
     ).then((arrOfArrs) => arrOfArrs.flat());
 }

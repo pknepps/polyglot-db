@@ -1,3 +1,5 @@
+import { readFileSync } from "fs";
+import { createClient } from "redis";
 import { redis } from ".";
 
 /**
