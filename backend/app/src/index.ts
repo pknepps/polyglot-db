@@ -421,6 +421,7 @@ async function interact(mongo_db: Db) {
  */
 async function start() {
     redis = await connectRedis();
+    console.log(await getAllPostgresAddresses());
     try {
         try {
             const mongodb = await connectMongo();

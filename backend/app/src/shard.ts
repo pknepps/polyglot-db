@@ -10,12 +10,37 @@ import { Driver } from "neo4j-driver";
  * the number of items it stores.
  */
 interface DBMap {
-    postgresMap: Map<string, number>;
-    mongoMap: Map<string, number>;
-    neo4jMap: Map<string, number>;
+    postgres: Map<string, number>,
+    mongoDB: Map<string, number>,
+    neo4j: Map<string, number>,
 }
 
 const dbMap: DBMap = {
+    postgres: new Map(),
+    mongoDB: new Map(),
+    neo4j: new Map(),
+}
+
+const redis = connectRedis();
+
+async function connectRedis() {
+    // gets the redis password from a file
+    const redisPass: string = readFileSync("./REDIS_PASSWORD", "utf-8");
+
+    // the parts needed to create redis connection
+    // use a connection string in the format redis[s]://[[username][:password]@][host][:port][/db-number]:
+    const redisUri: string = "redis://:" + redisPass + "@pknepps.net";
+
+    const redis = createClient({ url: redisUri });
+
+    // log an error message for connection errors
+    redis.on("error", (err) => console.log("Redis Client Error", err));
+
+    // connect to server
+    await redis.connect();
+
+    return redis;
+}
     postgresMap: new Map(),
     mongoMap: new Map(),
     neo4jMap: new Map(),
@@ -36,17 +61,9 @@ dbMap.neo4jMap.set("pknepps.net", 0);
  * @param db The name of the field in the DBMap interface to search through
  * @returns The address of the shard to send new data to
  */
-function getAddressToSend(db: "postgresMap" | "mongoMap" | "neo4jMap"): string {
-    let map;
-    if (db === "postgresMap") {
-        map = dbMap.postgresMap;
-    } else if (db === "mongoMap") {
-        map = dbMap.mongoMap;
-    } else {
-        map = dbMap.neo4jMap;
-    }
+function getAddressToSend(db: "postgres" | "mongoDB" | "neo4j"): string {
     let min: [string, number] = ["", Number.MAX_VALUE];
-    for (let entry of map) {
+    for (let entry of dbMap["postgresMap"]) {
         if (entry[1] < min[1]) {
             min = entry;
         }
@@ -101,8 +118,8 @@ export function getAllPostgressConnections(): Pool[] {
  * Calculates the best existing MongoDB shard to send new data to.
  * @returns The address of the MongoDB shard to send new data to.
  */
-export function getMongoConnection(): string {
-    return getAddressToSend("mongoMap");
+export function getMongoAddressToSend(): string {
+    return getAddressToSend("mongoDB");
 }
 
 /**
@@ -110,7 +127,7 @@ export function getMongoConnection(): string {
  * @returns The address of the Neo4j shard to send new data to.
  */
 export function getNeo4jAddressToSend(): string {
-    return getAddressToSend("neo4jMap");
+    return getAddressToSend("neo4j");
 }
 
 /**
@@ -121,7 +138,7 @@ export function getNeo4jAddressToSend(): string {
  * @returns The address of the host which holds the data.
  */
 async function getAddress(id: string, db: string): Promise<string | null> {
-    return redis.get(db + id);
+    return (await redis).get(db + id);
 }
 
 /**
@@ -152,16 +169,4 @@ export async function getMongoAddress(id: string): Promise<string | null> {
  */
 export async function getNeo4jAddress(id: string): Promise<string | null> {
     return getAddress(id, "neo4j");
-}
-
-export function getAllMongoAddresses() {
-    return dbMap.mongoMap.keys();
-}
-
-export function getAllPostgresAddresses() {
-    return dbMap.postgresMap.keys();
-}
-
-export function getAllNeo4jAddresses() {
-    return dbMap.neo4jMap.keys();
 }
