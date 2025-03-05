@@ -16,7 +16,7 @@ export function LeftSide({ children }: { children: React.ReactNode }) {
     // keeps track of the products
     const [products, setProducts] = useState<Product[]>([]);
     // access to the search query result
-    const { searchQuery } = useContext(SearchContext);
+    const { searchQuery, setSearchQuery } = useContext(SearchContext);
 
     // get the products
     useEffect(() => {
@@ -38,6 +38,11 @@ export function LeftSide({ children }: { children: React.ReactNode }) {
           )
         : products;
 
+    // allows a product to be selected from the list and updates the search query
+    const handleProductSelect = (product: Product) => {
+        setSearchQuery(product.product_id.toString());
+    };
+
     return (
         <div className="left-side-container bg-stone-100 w-full h-screen p-8">
             <h3 className="text-black text-4xl font-bold text-center mb-8">Products</h3>
@@ -51,7 +56,9 @@ export function LeftSide({ children }: { children: React.ReactNode }) {
                 ) : (
                     filteredProducts.map((product) => (
                         <li key={product.product_id} className="text-black">
-                            <ProductLayout product_id={product.product_id} />
+                            <div onClick={() => handleProductSelect(product)} className="clickable-product">
+                                <ProductLayout product_id={product.product_id} />
+                            </div>
                         </li>
                     ))
                 )}
