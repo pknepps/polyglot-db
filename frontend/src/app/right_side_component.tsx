@@ -9,7 +9,7 @@
 import React, { useState, useContext, useEffect, useRef } from "react";
 import "./right_side_component.css";
 import { Product } from "../../../backend/app/src/interfaces";
-import { getNeoGraph } from "./request";
+import { getNeoGraph, getPostgresData } from "./request";
 import { SearchContext } from "./searchContext";
 import ProductLayout from "./product/[id]/page";
 import { Network } from "vis-network/standalone/esm/vis-network";
@@ -22,7 +22,6 @@ import { Network } from "vis-network/standalone/esm/vis-network";
 export function RightSide() {
     // initialize the use states
     const [message, setMessage] = useState<string>("");
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [neoGraphData, setNeoGraphData] = useState<{ nodes: any[]; edges: any[] }>({ nodes: [], edges: [] });
     const { searchQuery } = useContext(SearchContext);
 
@@ -89,10 +88,14 @@ export function RightSide() {
     );
 }
 
+/**
+ * Define an interface for neo4j graph props.
+ */
 interface NeoGraphProps {
     data: { nodes: any[]; edges: any[] };
 }
 
+// creates a neo4j graph
 const NeoGraph: React.FC<NeoGraphProps> = ({ data }) => {
     const containerRef = useRef<HTMLDivElement>(null);
 

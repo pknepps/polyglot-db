@@ -51,6 +51,29 @@ export async function getNeoGraph(productId?: number): Promise<{ nodes: any[]; e
 }
 
 /**
+ * Gets the postgres data.
+ * 
+ * @param productId The unique id of the product.
+ * @returns The data from the postgres database.
+ */
+export async function getPostgresData(productId?: number): Promise<any[]> {
+    try {
+        const url = productId ? `${backendAddress}postgres/${productId}` : `${backendAddress}postgres/`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: GETHeaders,
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to fetch PostgreSQL data: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching PostgreSQL data:', error);
+        return [];
+    }
+}
+
+/**
  * Get the list of all products.
  * 
  * @returns  All products.
