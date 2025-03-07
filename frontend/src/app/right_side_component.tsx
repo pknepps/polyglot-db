@@ -6,8 +6,11 @@
  * @Version 12/4/2024
  */
 
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import "./right_side_component.css";
+import { getNeoGraph } from "./request";
+import { SearchContext } from "./searchContext";
+import { Network } from "vis-network/standalone/esm/vis-network";
 
 /**
  * Creates the right side component for the UI.
@@ -17,9 +20,11 @@ import "./right_side_component.css";
 export function RightSide() {
     // initialize the use states
     const [message, setMessage] = useState<string>("");
+    const [neoGraphData, setNeoGraphData] = useState<{ nodes: any[]; edges: any[] }>({ nodes: [], edges: [] });
+    const { searchQuery } = useContext(SearchContext);
 
     // handles button clicks, each display a different image
-    const handleButtonClick = (dbName: string) => {
+    const handleButtonClick = async (dbName: string) => {
         switch (dbName) {
             case "PostgreSQL": {
                 setMessage("PostgreSQL button has been pressed.");
@@ -31,6 +36,18 @@ export function RightSide() {
             }
             case "Neo4j": {
                 setMessage("Neo4j button has been pressed.");
+                try {
+                    const productId = parseInt(searchQuery);
+                    if (!isNaN(productId)) {
+                        const data = await getNeoGraph(productId);
+                        setNeoGraphData(data);
+                    } else{
+                        setMessage("Please enter a valid product id.");
+                    }
+                    
+                } catch (error) {
+                    console.error("Error fetching neo4j data:", error);
+                }
                 break;
             }
             case "Redis": {
@@ -39,6 +56,13 @@ export function RightSide() {
             }
         }
     };
+
+    useEffect(() => {
+        if (!searchQuery) {
+            setNeoGraphData({ nodes: [], edges: [] });
+            setMessage("");
+        }
+    }, [searchQuery]);
 
     // the html for the right side
     return (
@@ -61,6 +85,36 @@ export function RightSide() {
                 <br></br>The buttons will each eventually represent a graph when clicked.
             </div>
             {message && <p>{message}</p>}
+            {neoGraphData.nodes.length > 0 && <NeoGraph data={neoGraphData} />}
+            <div></div>
         </div>
     );
 }
+
+interface NeoGraphProps {
+    data: { nodes: any[]; edges: any[] };
+}
+
+const NeoGraph: React.FC<NeoGraphProps> = ({ data }) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (containerRef.current) {
+            containerRef.current.innerHTML = "";
+            const network = new Network(containerRef.current, data, {
+                nodes: {
+                    shape: "dot",
+                    size: 16,
+                },
+                edges: {
+                    width: 2,
+                },
+                physics: {
+                    stabilization: false,
+                },
+            });
+        }
+    }, [data]);
+
+    return <div ref={containerRef} style={{ height: "500px", width: "100%" }} />;
+};

@@ -75,13 +75,15 @@ export function Header() {
         setUsername("");
     };
 
+    // sets the search query when the user types in the search bar
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchInput(e.target.value);
         setSearchQuery(e.target.value);
     };
 
+    // resets the search query when the user clicks home
     const handleHomeClick = () => {
-        setSearchQuery(""); 
+        setSearchQuery("");
         setSearchInput("");
     };
 

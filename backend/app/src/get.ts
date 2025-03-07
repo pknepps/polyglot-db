@@ -95,23 +95,58 @@ export async function getAllProducts(mongodb: Db) {
  * @returns The product and its connected nodes.
  */
 export async function getNeoGraph(pid: number) {
-    let session = neoDriver.session();
+    const session = neoDriver.session();
     try {
-        let result = await session.run("MATCH (p:Product {product_id: $pid})-[r]-(b) RETURN p, r, b", {pid});
+        //
+        // This is ideal but having trouble getting it to work. Going to get the basic
+        // working first
+        //
+        // const result = await session.run(
+        //     "MATCH (n {product_id: $pid})-[r:BOUGHT*1..2]-(related) RETURN n, r, related",
+        //     { pid }
+        // );
+
+        const result = await session.run(
+            "MATCH (n {product_id: $pid})-[r]-(p) RETURN n, r, p",
+            { pid }
+        );
+
+        const nodes: { id: number, label: string, type: string }[] = [];
+        const edges: { from: number, to: number, label: string }[] = [];
+        const nodeSet = new Set<number>();
+
         result.records.forEach(record => {
+            const n = record.get('n');
             const p = record.get('p');
-            const b = record.get('b');
             const r = record.get('r');
 
-            console.log('Product Node:', p.properties);
-            console.log('Related Node:', b.properties);
+            console.log("This is the related node: ", p);
+            console.log("This is the product: ", n);
+
+            if (!nodeSet.has(n.identity.low)) {
+                nodes.push({ id: n.identity.low, label: n.properties.name, type: n.labels[0] });
+                nodeSet.add(n.identity.low);
+            }
+
+            if (!nodeSet.has(p.identity.low)) {
+                nodes.push({ id: p.identity.low, label: p.properties.username, type: p.labels[0] });
+                nodeSet.add(p.identity.low);
+            }
+
+            edges.push({
+                from: n.identity.low,
+                to: p.identity.low,
+                label: r.type
+            });
+
+            console.log('Product Node:', n.properties);
+            console.log('Related Node:', p.properties);
             console.log('Relationship:', r.type);
         });
-        // return result.records;
+
+        return { nodes, edges };
     } catch (e) {
-        console.log(`There was a problem querying the Neo4j graph, ${e}`)
+        console.log(`There was a problem querying the Neo4j graph, ${e}`);
         return new Promise((_, reject) => reject());
-    } finally {
-        session.close();
     }
 }

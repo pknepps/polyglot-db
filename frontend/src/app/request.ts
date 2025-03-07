@@ -20,6 +20,33 @@ POSTHeaders.append("Access-Control-Request-Method", "POST");
 POSTHeaders.append("Content-Type", "application/json");
 
 /**
+ * Gets the neo4j graph data.
+ * 
+ * @param productId The unique id of the product.
+ * @returns The data from the neo4j database.
+ */
+export async function getNeoGraph(productId: number): Promise<{ nodes: any[]; edges: any[] }> {
+    try {
+        const response = await fetch(`http://localhost:8000/api/neo/graph/${productId}`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch Neo4j graph for product with id ${productId}: ${response.statusText}`);
+        }
+        const data = await response.json();
+
+        // Ensure nodes have labels
+        const nodes = data.nodes.map((node: any) => ({
+            ...node,
+            label: node.label || node.name || `Node ${node.id}`, // Add a label property
+        }));
+
+        return { nodes, edges: data.edges };
+    } catch (error) {
+        console.error(`Error fetching Neo4j graph for product with id ${productId}:`, error);
+        return { nodes: [], edges: [] };
+    }
+}
+
+/**
  * Get the list of all products.
  * 
  * @returns  All products.
@@ -41,35 +68,25 @@ export async function getProducts(): Promise<Product[]> {
  * @returns The product.
  */
 export async function getProduct(productId: number): Promise<Product> {
-    console.log(productId);
-    const request: RequestInfo = new Request(`http://localhost:8000/api/product/${productId}`, {
-        method: 'GET',
-        headers: GETHeaders,
-    });
-    return fetch(request)
-        .then(response => response.json())
-        .catch(error => {
-            console.error(error.toString());
-            return {
-                product_id: -1,
-                name: "failed to load product from database",
-                price: 0.0,
-                ratings: [],
-                reviews: []
-            };
-        })
-        .then(response => response as Product)
-        .catch(error => {
-            console.error(error.toString());
-            return {
-                product_id: -1,
-                name: "failed to load product from json",
-                price: 0.0,
-                ratings: [],
-                reviews: []
-            };
+    try {
+        const response = await fetch(`${backendAddress}product/${productId}`, {
+            method: 'GET',
+            headers: GETHeaders,
         });
-
+        if (!response.ok) {
+            throw new Error(`Failed to fetch product with id ${productId}: ${response.statusText}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error(`Error fetching product with id ${productId}:`, error);
+        return {
+            product_id: -1,
+            name: "Failed to load product from database",
+            price: 0.0,
+            ratings: [],
+            reviews: []
+        };
+    }
 }
 
 /**
