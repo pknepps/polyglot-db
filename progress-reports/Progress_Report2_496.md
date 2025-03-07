@@ -12,7 +12,15 @@
 
 ### Goals for the most recent sprint
 
-- ***
+- Implement sharding algorithm on the backend
+    - refactor create operations
+    - refactor read operations
+    - refactor update operations
+- Implement neo4j graph on frontend
+- Add functionality to 
+    - The search bar
+    - The home button
+
 
 ### Activity Log
 
@@ -29,5 +37,10 @@
 | Dalton | 2/29 | 1 hour 30 minutes | I made the list of products scrollable fixed so that the list didnt extend past the right side component. I also added some more formatting to the way the products are formatted. | It is now cleaner on the frontend. |
 | Dalton | 3/2 | 2 hours | I made the home button functional. | When pressed it will reset whatever was searched for and relist all the products again. |
 | Dalton | 3/4 | 3 hours | Made the products clickable, so that when clicked they are also the search result. I also worked on getting the neo4j data from the backend to the frontend. Able to display a neo4j representation for a single node on the front end. | More functionality on the frontend, and able to view Neo4j products. |
-| Dalton | 3/5 | 3o mins | Made it so that when no product is selected, all of the nodes from neo4j are displayed. | Makes neo4j look better. |
+| Dalton | 3/5 | 30 mins | Made it so that when no product is selected, all of the nodes from neo4j are displayed. | Makes neo4j look better. |
 | Dalton | 3/6 | 1 hour | Began setting up routes on the backend to send the postgres data for either a specific product or for all of the data. | The api calls work, but did not get to implement any visual aspects on the frontend. |
+| Preston | 2/26 | 1 hour | created code skeleton for sharding | had a basic design for how sharding with redis would be implemented |
+| Preston | 3/5 | 3 hours | Worked on redis operations in relation to sharding, which was eventually scrapped | Had more ideas on how sharding should be implemented. considered multiple algorithms |
+| Preston | 3/6 | 3 hours | Added the functionality to get items from shards, involving the rewrite of our getters | We can now (theoretically) retrieve items from our sharded databases |
+| Preston | 3/6 | 1 hour | Added caching functionality to redis as a last minute decsision | There is a functional cache which stores retrieved products (and respective recommended products) for 10 minutes. |
+| Preston | 3/6 | 2 hour | Refactored sharding algorithm | Algorithm should work better in the long run. No longer shards Neo4j |
