@@ -89,6 +89,25 @@ export async function getAllProducts(mongodb: Db) {
 }
 
 /**
+ * Get information from the products table in the PostgreSQL database.
+ * 
+ * @param pid A potential product id to filter by.
+ * @returns A promise that resolves the query result or rejects.
+ */
+export async function getPostgresData(pid?: number) {
+    try {
+        let q = "SELECT * FROM products p LEFT JOIN transactions t ON p.product_id = t.product_id";
+        if (pid !== undefined) {
+            q += " WHERE p.product_id = " + String(pid);
+        }
+        return await db.query(q);
+    } catch (e) {
+        console.log(`There was a problem querying products from PostgreSQL, ${e}`)
+        return new Promise((_, reject) => reject());
+    }
+}
+
+/**
  * Returns the result of the neo4j query for a specidic product.
  * 
  * @param pid The product number we are looking at.

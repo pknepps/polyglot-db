@@ -8,7 +8,8 @@
 
 // these are the required imports
 import { Router, Request, Response } from "express";
-import { getProduct, getUser, getProducts, getAllProducts, getNeoGraph } from "./get";
+import { db } from "./index";
+import { getProduct, getUser, getProducts, getAllProducts, getNeoGraph, getPostgresData} from "./get";
 import { Db } from "mongodb";
 import { newProduct, newUser, newTransaction } from "./create";
 import { Product, ProductRecord, User, UserRecord, TransactionRecord } from "./interfaces";
@@ -43,6 +44,7 @@ export function createRouter(mongo_db: Db) {
     apiGenerateReviews(router, mongo_db);
     apiGetAllProducts(router, mongo_db);
     apiGetNeoGraph(router);
+    apiGetPostgresData(router);
     return router;
 }
 
@@ -75,6 +77,24 @@ function apiGetNeoGraph(router: Router) {
             res.json(graph);
         } catch (error) {
             console.error('Error fetching Neo4j graph data:', error);
+            res.status(500).send("Internal Server Error");
+        }
+    });
+}
+
+/**
+ * Adds a route to get the PostgreSQL data for the given product id.
+ * 
+ * @param router The Express router to add the request to.
+ */
+function apiGetPostgresData(router: Router) {
+    router.get("/postgres/:pid?", async (req: Request, res: Response) => {
+        const pid = req.params.pid ? Number(req.params.pid) : undefined;
+        try {
+            const data = await getPostgresData(pid);
+            res.json(data);
+        } catch (error) {
+            console.error('Error fetching PostgreSQL data:', error);
             res.status(500).send("Internal Server Error");
         }
     });
