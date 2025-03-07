@@ -94,7 +94,7 @@ export async function getAllProducts(mongodb: Db) {
  * @param pid The product number we are looking at.
  * @returns The product and its connected nodes.
  */
-export async function getNeoGraph(pid: number) {
+export async function getNeoGraph(pid?: number) {
     const session = neoDriver.session();
     try {
         //
@@ -106,10 +106,17 @@ export async function getNeoGraph(pid: number) {
         //     { pid }
         // );
 
-        const result = await session.run(
-            "MATCH (n {product_id: $pid})-[r]-(p) RETURN n, r, p",
-            { pid }
-        );
+        let result;
+        if (pid !== undefined) {
+            result = await session.run(
+                "MATCH (n {product_id: $pid})-[r]-(p) RETURN n, r, p",
+                { pid }
+            );
+        } else {
+            result = await session.run(
+                "MATCH (n)-[r]-(p) RETURN n, r, p"
+            );
+        }
 
         const nodes: { id: number, label: string, type: string }[] = [];
         const edges: { from: number, to: number, label: string }[] = [];
@@ -124,12 +131,14 @@ export async function getNeoGraph(pid: number) {
             console.log("This is the product: ", n);
 
             if (!nodeSet.has(n.identity.low)) {
-                nodes.push({ id: n.identity.low, label: n.properties.name, type: n.labels[0] });
+                const label = n.labels.includes('Product') ? n.properties.name : n.properties.username;
+                nodes.push({ id: n.identity.low, label, type: n.labels[0] });
                 nodeSet.add(n.identity.low);
             }
 
             if (!nodeSet.has(p.identity.low)) {
-                nodes.push({ id: p.identity.low, label: p.properties.username, type: p.labels[0] });
+                const label = p.labels.includes('Product') ? p.properties.name : p.properties.username;
+                nodes.push({ id: p.identity.low, label, type: p.labels[0] });
                 nodeSet.add(p.identity.low);
             }
 

@@ -68,8 +68,8 @@ function apiGetProduct(router: Router, mongo_db: Db) {
  * @param router The Express router to add the request to.
  */
 function apiGetNeoGraph(router: Router) {
-    router.get("/neo/graph/:pid", async (req: Request, res: Response) => {
-        const pid = Number(req.params.pid);
+    router.get("/neo/graph/:pid?", async (req: Request, res: Response) => {
+        const pid = req.params.pid ? Number(req.params.pid) : undefined;
         try {
             const graph = await getNeoGraph(pid);
             res.json(graph);

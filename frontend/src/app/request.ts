@@ -25,9 +25,13 @@ POSTHeaders.append("Content-Type", "application/json");
  * @param productId The unique id of the product.
  * @returns The data from the neo4j database.
  */
-export async function getNeoGraph(productId: number): Promise<{ nodes: any[]; edges: any[] }> {
+export async function getNeoGraph(productId?: number): Promise<{ nodes: any[]; edges: any[] }> {
     try {
-        const response = await fetch(`http://localhost:8000/api/neo/graph/${productId}`);
+        const url = productId ? `${backendAddress}neo/graph/${productId}` : `${backendAddress}neo/graph/`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: GETHeaders,
+        });
         if (!response.ok) {
             throw new Error(`Failed to fetch Neo4j graph for product with id ${productId}: ${response.statusText}`);
         }
@@ -36,7 +40,7 @@ export async function getNeoGraph(productId: number): Promise<{ nodes: any[]; ed
         // Ensure nodes have labels
         const nodes = data.nodes.map((node: any) => ({
             ...node,
-            label: node.label || node.name || `Node ${node.id}`, // Add a label property
+            label: node.label || node.name || `Node ${node.id}`,
         }));
 
         return { nodes, edges: data.edges };

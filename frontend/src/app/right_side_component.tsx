@@ -8,8 +8,10 @@
 
 import React, { useState, useContext, useEffect, useRef } from "react";
 import "./right_side_component.css";
+import { Product } from "../../../backend/app/src/interfaces";
 import { getNeoGraph } from "./request";
 import { SearchContext } from "./searchContext";
+import ProductLayout from "./product/[id]/page";
 import { Network } from "vis-network/standalone/esm/vis-network";
 
 /**
@@ -20,6 +22,7 @@ import { Network } from "vis-network/standalone/esm/vis-network";
 export function RightSide() {
     // initialize the use states
     const [message, setMessage] = useState<string>("");
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [neoGraphData, setNeoGraphData] = useState<{ nodes: any[]; edges: any[] }>({ nodes: [], edges: [] });
     const { searchQuery } = useContext(SearchContext);
 
@@ -38,13 +41,8 @@ export function RightSide() {
                 setMessage("Neo4j button has been pressed.");
                 try {
                     const productId = parseInt(searchQuery);
-                    if (!isNaN(productId)) {
-                        const data = await getNeoGraph(productId);
-                        setNeoGraphData(data);
-                    } else{
-                        setMessage("Please enter a valid product id.");
-                    }
-                    
+                    const data = await getNeoGraph(!isNaN(productId) ? productId : undefined);
+                    setNeoGraphData(data);
                 } catch (error) {
                     console.error("Error fetching neo4j data:", error);
                 }
