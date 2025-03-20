@@ -184,5 +184,5 @@ export async function getNeoGraph(pid?: number) {
 }
 
 export async function getMongoProductSchema(mongoDb: Db) {
-  return mongoDb.collection('products').findOne({});
+  return mongoDb.collection('products').find({}).toArray();
 }

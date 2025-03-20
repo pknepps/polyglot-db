@@ -9,11 +9,17 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import './right_side_component.css';
 import { Product } from '../../../backend/app/src/interfaces';
-import { getMongoSchema, getNeoGraph, getPostgresData } from './request';
+import {
+  getMongoSchema,
+  getNeoGraph,
+  getPostgresData,
+  getProduct,
+} from './request';
 import { SearchContext } from './searchContext';
 import ProductLayout from './product/[id]/page';
 import { Network } from 'vis-network/standalone/esm/vis-network';
 import { Card } from './components';
+import { JsonEditor } from 'json-edit-react';
 
 /**
  * Creates the right side component for the UI.
@@ -32,6 +38,7 @@ export function RightSide() {
 
   // handles button clicks, each display a different image
   const handleButtonClick = async (dbName: string) => {
+    const productId = parseInt(searchQuery);
     setMessage('');
     setMongoSchema(null);
     setNeoGraphData({ nodes: [], edges: [] });
@@ -43,7 +50,17 @@ export function RightSide() {
       case 'MongoDB': {
         setMessage('MongoDB button has been pressed.');
         try {
-          const mongoSchema = await getMongoSchema();
+          let mongoSchema;
+          if (!isNaN(productId)) {
+            // TODO: bad. Need to lift up selected product into shared parent
+            // but too lazy
+            // TODO: it would also be nice if it would automatically switch to
+            // single product view whenever selecting a product after selecting
+            // the mongodb button, but oh well.
+            mongoSchema = await getProduct(productId);
+          } else {
+            mongoSchema = await getMongoSchema();
+          }
           setMongoSchema(mongoSchema);
         } catch (error) {
           console.error(`Error occurred while fetching mongodb data: ${error}`);
@@ -53,7 +70,6 @@ export function RightSide() {
       case 'Neo4j': {
         setMessage('Neo4j button has been pressed.');
         try {
-          const productId = parseInt(searchQuery);
           const data = await getNeoGraph(
             !isNaN(productId) ? productId : undefined
           );
@@ -145,12 +161,10 @@ const NeoGraph: React.FC<NeoGraphProps> = ({ data }) => {
 };
 
 function MongoSchema({ schema }: { schema: unknown }) {
-  console.log(JSON.stringify(schema, null, 2));
-
   return (
-    <div className='h-[calc(100vh-200px)] overflow-auto whitespace-pre-wrap'>
+    <div className='h-[calc(100vh-200px)] overflow-auto'>
       <Card>
-        <p>{JSON.stringify(schema, null, 2)}</p>
+        <JsonEditor data={schema} viewOnly={true} collapse={1}></JsonEditor>
       </Card>
     </div>
   );
