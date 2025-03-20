@@ -26,9 +26,9 @@
      showgrid="false"
      width="300mm"
      inkscape:zoom="0.99747917"
-     inkscape:cx="843.62664"
-     inkscape:cy="418.05384"
-     inkscape:window-width="960"
+     inkscape:cx="406.52478"
+     inkscape:cy="458.15493"
+     inkscape:window-width="1920"
      inkscape:window-height="967"
      inkscape:window-x="0"
      inkscape:window-y="32"
@@ -247,7 +247,9 @@
          style="font-size:3.52778px;stroke-width:0.264583"
          x="2.4441109"
          y="40.783531"
-         id="tspan62775">• Pros: </tspan><tspan
+         id="tspan62775"><tspan
+   style="font-weight:bold"
+   id="tspan26083">Pros:</tspan> </tspan><tspan
          sodipodi:role="line"
          style="font-size:3.52778px;stroke-width:0.264583"
          x="2.4441109"
@@ -274,10 +276,10 @@
          y="62.832157"
          id="tspan110691">       efficiency, and security.</tspan><tspan
          sodipodi:role="line"
-         style="font-size:3.52778px;stroke-width:0.264583"
+         style="font-weight:bold;font-size:3.52778px;stroke-width:0.264583"
          x="2.4441109"
          y="67.241882"
-         id="tspan110957">• Cons:</tspan><tspan
+         id="tspan110957">Cons:</tspan><tspan
          sodipodi:role="line"
          style="font-size:3.52778px;stroke-width:0.264583"
          x="2.4441109"
@@ -297,7 +299,9 @@
          style="font-size:3.52778px;stroke-width:0.264583"
          x="2.4441109"
          y="84.880783"
-         id="tspan115179">• What we use it for:</tspan><tspan
+         id="tspan115179"><tspan
+   style="font-weight:bold"
+   id="tspan29655">What we use it for</tspan>:</tspan><tspan
          sodipodi:role="line"
          style="font-size:3.52778px;stroke-width:0.264583"
          x="2.4441109"
@@ -360,10 +364,10 @@
          y="40.813911"
          id="tspan45635">   JSON objects.</tspan><tspan
          sodipodi:role="line"
-         style="stroke-width:0.264583"
+         style="font-weight:bold;stroke-width:0.264583"
          x="232.4218"
          y="45.223625"
-         id="tspan45639">• Pros:</tspan><tspan
+         id="tspan45639">Pros:</tspan><tspan
          sodipodi:role="line"
          style="stroke-width:0.264583"
          x="232.4218"
@@ -385,10 +389,10 @@
          y="62.862476"
          id="tspan47297">       nor structure.</tspan><tspan
          sodipodi:role="line"
-         style="stroke-width:0.264583"
+         style="font-weight:bold;stroke-width:0.264583"
          x="232.4218"
          y="67.272186"
-         id="tspan47299">• Cons:</tspan><tspan
+         id="tspan47299">Cons:</tspan><tspan
          sodipodi:role="line"
          style="stroke-width:0.264583"
          x="232.4218"
@@ -408,7 +412,9 @@
          style="stroke-width:0.264583"
          x="232.4218"
          y="84.911041"
-         id="tspan37866">• What we use it for:</tspan><tspan
+         id="tspan37866"><tspan
+           style="font-weight:bold"
+           id="tspan68542">What we use it for:</tspan></tspan><tspan
          sodipodi:role="line"
          style="stroke-width:0.264583"
          x="232.4218"
@@ -459,12 +465,12 @@
          style="stroke-width:0.264583"
          x="2.7228155"
          y="141.34607"
-         id="tspan73848">• Uses the Cypher query language</tspan><tspan
+         id="tspan75632">• Uses the Cypher query language</tspan><tspan
          sodipodi:role="line"
-         style="stroke-width:0.264583"
+         style="font-weight:bold;stroke-width:0.264583"
          x="2.7228155"
          y="145.75578"
-         id="tspan75632">• Pros:</tspan><tspan
+         id="tspan52185">Pros:</tspan><tspan
          sodipodi:role="line"
          style="stroke-width:0.264583"
          x="2.7228155"
@@ -476,10 +482,10 @@
          y="154.57521"
          id="tspan102522">       about relationships.</tspan><tspan
          sodipodi:role="line"
-         style="stroke-width:0.264583"
+         style="font-weight:bold;stroke-width:0.264583"
          x="2.7228155"
          y="158.98492"
-         id="tspan102524">• Cons:</tspan><tspan
+         id="tspan102524">Cons:</tspan><tspan
          sodipodi:role="line"
          style="stroke-width:0.264583"
          x="2.7228155"
@@ -499,7 +505,9 @@
          style="stroke-width:0.264583"
          x="2.7228155"
          y="176.62376"
-         id="tspan103630">• What we use it for:</tspan><tspan
+         id="tspan103630"><tspan
+           style="font-weight:bold"
+           id="tspan56992">What we use it for:</tspan></tspan><tspan
          sodipodi:role="line"
          style="stroke-width:0.264583"
          x="2.7228155"
@@ -557,10 +565,10 @@
          y="135.6151"
          id="tspan155713">    ‣ Put, Get, and Key lookup</tspan><tspan
          sodipodi:role="line"
-         style="stroke-width:0.264583"
+         style="font-weight:bold;stroke-width:0.264583"
          x="232.20815"
          y="140.02481"
-         id="tspan156609">• Pros:</tspan><tspan
+         id="tspan156609">Pros:</tspan><tspan
          sodipodi:role="line"
          style="stroke-width:0.264583"
          x="232.20815"
@@ -582,10 +590,10 @@
          y="157.66365"
          id="tspan156625">    ‣ Easy to learn.</tspan><tspan
          sodipodi:role="line"
-         style="stroke-width:0.264583"
+         style="font-weight:bold;stroke-width:0.264583"
          x="232.20815"
          y="162.07336"
-         id="tspan158061">• Cons:</tspan><tspan
+         id="tspan158061">Cons:</tspan><tspan
          sodipodi:role="line"
          style="stroke-width:0.264583"
          x="232.20815"
@@ -605,7 +613,9 @@
          style="stroke-width:0.264583"
          x="232.20815"
          y="179.71222"
-         id="tspan171905">• What we use it for:</tspan><tspan
+         id="tspan171905"><tspan
+           style="font-weight:bold"
+           id="tspan76728">What we use it for:</tspan></tspan><tspan
          sodipodi:role="line"
          style="stroke-width:0.264583"
          x="232.20815"
@@ -631,6 +641,27 @@
          x="232.20815"
          y="201.76079"
          id="tspan171907" /></text>
+    <rect
+       style="fill:#505050;stroke-width:0.264583"
+       id="rect84504"
+       width="65.278511"
+       height="55.920383"
+       x="70"
+       y="37.448315" />
+    <rect
+       style="fill:#afafaf;stroke-width:0.264583;fill-opacity:1"
+       id="rect84530"
+       width="157.02917"
+       height="83.289124"
+       x="70.291779"
+       y="43.501324" />
+    <rect
+       style="fill:#afafaf;fill-opacity:1;stroke-width:0.264583"
+       id="rect85413"
+       width="155.70291"
+       height="63.395226"
+       x="70.822281"
+       y="132.36075" />
   </g>
   <style
      type="text/css"
