@@ -96,11 +96,24 @@ export async function getAllProducts(mongodb: Db) {
  */
 export async function getPostgresData(pid?: number) {
     try {
-        let q = "SELECT * FROM products p LEFT JOIN transactions t ON p.product_id = t.product_id";
+        let q = `
+            SELECT 
+                p.product_id as product_id,
+                p.name as name,
+                p.price as price,
+                t.transaction_id as transaction_id,
+                t.username as username,
+                t.card_num as card_num,
+                t.address_line as address_line,
+                t.city as city,
+                t.state as state,
+                t.zip as zip
+            FROM products p LEFT JOIN transactions t ON p.product_id = t.product_id`;
         if (pid !== undefined) {
             q += " WHERE p.product_id = " + String(pid);
         }
-        return await db.query(q);
+        const result = await db.query(q);
+        return result.rows;
     } catch (e) {
         console.log(`There was a problem querying products from PostgreSQL, ${e}`)
         return new Promise((_, reject) => reject());

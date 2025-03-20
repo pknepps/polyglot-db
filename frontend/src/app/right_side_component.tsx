@@ -23,6 +23,7 @@ export function RightSide() {
     // initialize the use states
     const [message, setMessage] = useState<string>("");
     const [neoGraphData, setNeoGraphData] = useState<{ nodes: any[]; edges: any[] }>({ nodes: [], edges: [] });
+    const [postgresData, setPostgresData] = useState<Product[]>([]);
     const { searchQuery } = useContext(SearchContext);
 
     // handles button clicks, each display a different image
@@ -30,6 +31,13 @@ export function RightSide() {
         switch (dbName) {
             case "PostgreSQL": {
                 setMessage("PostgreSQL button has been pressed.");
+                try {
+                    const productId = parseInt(searchQuery);
+                    const data = await getPostgresData(!isNaN(productId) ? productId : undefined);
+                    setPostgresData(data);
+                } catch (error) {
+                    console.error("Error fetching postgres data:", error);
+                }
                 break;
             }
             case "MongoDB": {
@@ -118,4 +126,35 @@ const NeoGraph: React.FC<NeoGraphProps> = ({ data }) => {
     }, [data]);
 
     return <div ref={containerRef} style={{ height: "500px", width: "100%" }} />;
+};
+
+interface PostgresDataTableProps {
+    data: Record<string, string | number | null>[];
+}
+
+const PostgresDataTable: React.FC<PostgresDataTableProps> = ({ data }) => {
+    if (data.length === 0) {
+        return <p>No data available</p>;
+    }
+
+    return (
+        <table className="postgres-data-table">
+            <thead>
+                <tr>
+                    {Object.keys(data[0]).map((key) => (
+                        <th key={key}>{key}</th>
+                    ))}
+                </tr>
+            </thead>
+            <tbody>
+                {data.map((row, index) => (
+                    <tr key={index}>
+                        {Object.values(row).map((value, i) => (
+                            <td key={i}>{value !== null ? String(value) : "N/A"}</td>
+                        ))}
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
 };
