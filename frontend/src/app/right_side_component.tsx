@@ -19,7 +19,7 @@ import { SearchContext } from './searchContext';
 import ProductLayout from './product/[id]/page';
 import { Network } from 'vis-network/standalone/esm/vis-network';
 import { Card } from './components';
-import { JsonEditor } from 'json-edit-react';
+import { JsonEditor, JsonData } from 'json-edit-react';
 
 /**
  * Creates the right side component for the UI.
@@ -28,7 +28,7 @@ import { JsonEditor } from 'json-edit-react';
  */
 export function RightSide() {
   // initialize the use states
-  const [message, setMessage] = useState<string>('');
+//   const [message, setMessage] = useState<string>('');
   const [neoGraphData, setNeoGraphData] = useState<{
     nodes: any[];
     edges: any[];
@@ -40,12 +40,13 @@ export function RightSide() {
   // handles button clicks, each display a different image
   const handleButtonClick = async (dbName: string) => {
     const productId = parseInt(searchQuery);
-    setMessage('');
+    // setMessage('');
     setMongoSchema(null);
     setNeoGraphData({ nodes: [], edges: [] });
+    setPostgresData([]);
     switch (dbName) {
       case 'PostgreSQL': {
-        setMessage('PostgreSQL button has been pressed.');
+        // setMessage('PostgreSQL button has been pressed.');
         try {
             const productId = parseInt(searchQuery);
             const data = await getPostgresData(!isNaN(productId) ? productId : undefined);
@@ -56,7 +57,7 @@ export function RightSide() {
         break;
       }
       case 'MongoDB': {
-        setMessage('MongoDB button has been pressed.');
+        // setMessage('MongoDB button has been pressed.');
         try {
           let mongoSchema;
           if (!isNaN(productId)) {
@@ -76,7 +77,7 @@ export function RightSide() {
         break;
       }
       case 'Neo4j': {
-        setMessage('Neo4j button has been pressed.');
+        // setMessage('Neo4j button has been pressed.');
         try {
           const data = await getNeoGraph(
             !isNaN(productId) ? productId : undefined
@@ -88,7 +89,7 @@ export function RightSide() {
         break;
       }
       case 'Redis': {
-        setMessage('Redis button has been pressed.');
+        // setMessage('Redis button has been pressed.');
         break;
       }
     }
@@ -97,7 +98,7 @@ export function RightSide() {
   useEffect(() => {
     if (!searchQuery) {
       setNeoGraphData({ nodes: [], edges: [] });
-      setMessage('');
+    //   setMessage('');
     }
   }, [searchQuery]);
 
@@ -124,11 +125,16 @@ export function RightSide() {
           Redis
         </button>
       </div>
-      <div>
-        <br></br>The buttons will each eventually represent a graph when
-        clicked.
-      </div>
-      {message && <p>{message}</p>}
+      {/* {message && <p>{message}</p>} */}
+      {postgresData.length > 0 && (
+        <PostgresDataTable
+            data={postgresData.map((product) =>
+                Object.fromEntries(
+                    Object.entries(product).map(([key, value]) => [key, value ?? null])
+                )
+            )}
+        />
+      )}
       {neoGraphData.nodes.length > 0 && <NeoGraph data={neoGraphData} />}
       {mongoSchema && <MongoSchema schema={mongoSchema} />}
       <div></div>
@@ -168,7 +174,7 @@ const NeoGraph: React.FC<NeoGraphProps> = ({ data }) => {
   return <div ref={containerRef} style={{ height: '500px', width: '100%' }} />;
 };
 
-function MongoSchema({ schema }: { schema: unknown }) {
+function MongoSchema({ schema }: { schema: JsonData }) {
   return (
     <div className='h-[calc(100vh-200px)] overflow-auto'>
       <Card>
@@ -178,34 +184,60 @@ function MongoSchema({ schema }: { schema: unknown }) {
   );
 }
 
-
 interface PostgresDataTableProps {
     data: Record<string, string | number | null>[];
 }
-
-const PostgresDataTable: React.FC<PostgresDataTableProps> = ({ data }) => {
+  
+  const PostgresDataTable: React.FC<PostgresDataTableProps> = ({ data }) => {
+    const columns = [
+      "ProductID",
+      "Name",
+      "Price",
+      "Transactions",
+    ];
+  
     if (data.length === 0) {
-        return <p>No data available</p>;
+      return <p>No data available</p>;
     }
-
+  
     return (
-        <table className="postgres-data-table">
+        <div className="table-container">
+            <table className="postgres-data-table">
             <thead>
                 <tr>
-                    {Object.keys(data[0]).map((key) => (
-                        <th key={key}>{key}</th>
-                    ))}
+                {columns.map((column) => (
+                    <th key={column}>{column}</th>
+                ))}
                 </tr>
             </thead>
             <tbody>
                 {data.map((row, index) => (
-                    <tr key={index}>
-                        {Object.values(row).map((value, i) => (
-                            <td key={i}>{value !== null ? String(value) : "N/A"}</td>
-                        ))}
-                    </tr>
+                <tr key={index}>
+                    {columns.map((column) => (
+                    <td key={column}>
+                        {column === "Transactions" ? (
+                        Array.isArray(row.Transactions) && row.Transactions.length > 0 ? (
+                            <ul>
+                            {row.Transactions.map((transaction: any, tIndex: number) => (
+                                <li key={tIndex}>
+                                <strong>Transaction ID:</strong> {transaction.transaction_id}, <strong>User:</strong> {transaction.username}
+                                </li>
+                            ))}
+                            </ul>
+                        ) : (
+                            "No Transactions"
+                        )
+                        ) : (
+                        row[column] !== undefined && row[column] !== null
+                            ? String(row[column])
+                            : "N/A"
+                        )}
+                    </td>
+                    ))}
+                </tr>
                 ))}
             </tbody>
-        </table>
-    );
-};
+            </table>
+        </div>
+      );
+    }

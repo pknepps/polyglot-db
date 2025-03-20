@@ -99,22 +99,28 @@ export async function getPostgresData(pid?: number) {
     try {
         let q = `
             SELECT 
-                p.product_id as product_id,
+                p.product_id as productid,
                 p.name as name,
                 p.price as price,
-                t.transaction_id as transaction_id,
-                t.username as username,
-                t.card_num as card_num,
-                t.address_line as address_line,
-                t.city as city,
-                t.state as state,
-                t.zip as zip
+                COALESCE(json_agg(
+                    json_build_object(
+                        'transaction_id', t.transaction_id,
+                        'username', t.username
+                    )
+                ) FILTER (WHERE t.transaction_id IS NOT NULL), '[]') as transactions
             FROM products p LEFT JOIN transactions t ON p.product_id = t.product_id`;
         if (pid !== undefined) {
             q += " WHERE p.product_id = " + String(pid);
         }
+        q += ` GROUP BY p.product_id, p.name, p.price
+            ORDER BY p.product_id;`;
         const result = await db.query(q);
-        return result.rows;
+        return result.rows.map(row => ({
+            ProductID: row.productid,
+            Name: row.name,
+            Price: row.price,
+            Transactions: row.transactions
+        }));
     } catch (e) {
         console.log(`There was a problem querying products from PostgreSQL, ${e}`)
         return new Promise((_, reject) => reject());

@@ -47,8 +47,10 @@ export default function RootLayout({
                 <SearchProvider>
                     <Header />
                     <div className="flex h-full">
-                        <LeftSide>{children}</LeftSide>
-                        <div style={{ width: "50%" }}>
+                        <div className="flex-1">
+                            <LeftSide>{children}</LeftSide>
+                        </div>
+                        <div className="flex-1">
                             <RightSide />
                         </div>
                     </div>

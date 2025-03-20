@@ -64,7 +64,8 @@ export async function getNeoGraph(
 }
 
 export async function getMongoSchema() {
-  try {
+    console.log("Mongo button is pressed");
+    try {
     const url = `${backendAddress}mongodb/schema`;
     const response = await fetch(url, {
       method: 'GET',
@@ -89,7 +90,8 @@ export async function getMongoSchema() {
  * @returns The data from the postgres database.
  */
 export async function getPostgresData(productId?: number): Promise<any[]> {
-  try {
+    console.log("Postgres button is pressed");
+    try {
     const url = productId
       ? `${backendAddress}postgres/${productId}`
       : `${backendAddress}postgres/`;
@@ -102,7 +104,9 @@ export async function getPostgresData(productId?: number): Promise<any[]> {
         `Failed to fetch PostgreSQL data: ${response.statusText}`
       );
     }
-    return await response.json();
+    const data = await response.json();
+    console.log("PostgreSQL Data:", data); // Log the response data
+    return data;
   } catch (error) {
     console.error('Error fetching PostgreSQL data:', error);
     return [];
