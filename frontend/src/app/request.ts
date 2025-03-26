@@ -187,15 +187,20 @@ export async function getRecommendations(
   productId: number
 ): Promise<Partial<Product>[]> {
   const request: RequestInfo = new Request(
-    backendAddress + `recommendation/${productId}`,
+    backendAddress + `recommendations/${productId}`,
     {
       method: 'GET',
       headers: GETHeaders,
     }
   );
-  return fetch(request)
-    .then((response) => response.json())
-    .then((response) => response as Partial<Product>[]);
+  try {
+    const response = await fetch(request);
+    const json = await response.json();
+    return json as Partial<Product>[];
+  } catch (error) {
+    console.error("Error while fetching recommendation:", error);
+    throw error;
+  }
 }
 
 /**

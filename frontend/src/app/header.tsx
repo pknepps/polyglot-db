@@ -13,6 +13,7 @@ import { getUser } from "@/app/request";
 import { User } from "../../../backend/app/src/interfaces";
 import { Modal } from "./components";
 import { SearchContext } from "./searchContext";
+import { redirect } from "next/navigation";
 
 /**
  * Creates the header component for the UI.
@@ -81,17 +82,11 @@ export function Header() {
         setSearchQuery(e.target.value);
     };
 
-    // resets the search query when the user clicks home
-    const handleHomeClick = () => {
-        setSearchQuery("");
-        setSearchInput("");
-    };
-
     // the html for the header
     return (
         <header className="bg-sky-600 flex flex-row justify-between align-middle py-2 px-4">
             <div className="header-buttons">
-                <button className="btn" onClick={handleHomeClick}>
+                <button className="btn" onClick={() => redirect("/") /* TODO: these should probably be links */}>
                     Home
                 </button>
                 {currentUser ? (
