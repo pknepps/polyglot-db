@@ -91,7 +91,9 @@ export function Header() {
     return (
         <header className="bg-sky-600 flex flex-row justify-between align-middle py-2 px-4">
             <div className="header-buttons">
-                <button className="btn" onClick={handleHomeClick}>Home</button>
+                <button className="btn" onClick={handleHomeClick}>
+                    Home
+                </button>
                 {currentUser ? (
                     <button className="btn" onClick={openUserInfoModal}>
                         {currentUser.username}
@@ -121,10 +123,10 @@ export function Header() {
                     </svg>
                 </button>
 
-                <input 
-                    type="text" 
-                    className="search-bar w-s lg:w-md" 
-                    placeholder="Search Products..." 
+                <input
+                    type="text"
+                    className="search-bar w-s lg:w-md"
+                    placeholder="Search Products..."
                     value={searchInput}
                     onChange={handleSearch}
                 />
@@ -132,7 +134,7 @@ export function Header() {
             <div className="header-buttons">
                 {currentUser ? (
                     <>
-                        <button className="header-button" onClick={handleSignOut}>
+                        <button className="btn" onClick={handleSignOut}>
                             Log-Out
                         </button>
                     </>
