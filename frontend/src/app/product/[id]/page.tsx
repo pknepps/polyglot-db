@@ -49,7 +49,7 @@ export default function ProductLayout({ params }: ProductLayoutProps): ReactElem
 
     // nicely format the product details
     return productDetails ? (
-        <ProductView productDetails={productDetails} recommendations={recommendations} />
+        <ProductView productDetails={productDetails} style="full" recommendations={recommendations} />
     ) : (
         <div>Loading...</div>
     );

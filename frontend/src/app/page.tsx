@@ -41,7 +41,7 @@ export default function AllProducts({ searchQuery }: { searchQuery: string }): R
                 ) : (
                     filteredProducts.map((product) => (
                         <Link href={`product/${product.product_id}`} key={product.product_id}>
-                            <ProductView productDetails={product} recommendations={product.reviews}></ProductView>
+                            <ProductView productDetails={product} style="preview" recommendations={[]}></ProductView>
                         </Link>
                     ))
                 )}

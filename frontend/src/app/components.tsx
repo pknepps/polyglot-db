@@ -29,31 +29,37 @@ export function Modal({
 
 export function ProductView({
     productDetails,
-    recommendations,
+    style = "preview",
+    recommendations = [],
 }: {
     productDetails: Product;
+    style: "preview" | "full";
     recommendations: Partial<Product>[];
 }) {
     // get the average rating of the product
     const avgRating = productDetails
         ? productDetails.ratings.reduce((sum, current) => sum + current.rating, 0) / productDetails.ratings.length
         : null;
-    return (
+    return style === "preview" ? (
         <div>
             <Card>
                 <h1 className="text-4xl font-thinbold">{productDetails.name}</h1>
                 <span className="text-sm text-gray-600 mt-16">id: {productDetails.product_id}</span>
-                <div className="flex flex-wrap">
-                    {recommendations.map((product, i) => (
-                        <Card key={i}>
-                            <PartialProduct product={product} />
-                        </Card>
-                    ))}
-                </div>
+                <div className="bg-slate-300 w-20 rounded-md font-bold text-xl">${productDetails.price.toFixed(2)}</div>
+                <h2 className="font-bold">Ratings and Reviews:</h2>
+                <h4>User Rating: {avgRating ? `${avgRating?.toFixed(1)}/5` : "No ratings available"}</h4>
+            </Card>
+        </div>
+    ) : (
+        <div>
+            <Card>
+                <h1 className="text-4xl font-thinbold">{productDetails.name}</h1>
+                <span className="text-sm text-gray-600 mt-16">id: {productDetails.product_id}</span>
+
                 <div className="bg-slate-300 w-20 rounded-md font-bold text-xl">${productDetails.price.toFixed(2)}</div>
                 <Card>
                     <h2 className="font-bold">Ratings and Reviews:</h2>
-                    <h4>User Rating: {avgRating ? `${avgRating?.toFixed(1)}` : "No ratings available"}</h4>
+                    <h4>User Rating: {avgRating ? `${avgRating?.toFixed(1)}/5` : "No ratings available"}</h4>
                 </Card>
                 <Card>
                     <h3 className="font-bold">Reviews:</h3>
@@ -63,6 +69,16 @@ export function ProductView({
                         </Card>
                     ))}
                     {productDetails.reviews.length === 0 && "No reviews"}
+                </Card>
+                <Card>
+                    <h3 className="font-bold">Recommended Products:</h3>
+                    <div className="flex flex-wrap">
+                        {recommendations?.map((product, i) => (
+                            <Card key={i}>
+                                <PartialProduct product={product} />
+                            </Card>
+                        ))}
+                    </div>
                 </Card>
             </Card>
         </div>
