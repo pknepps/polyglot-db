@@ -1,9 +1,5 @@
 "use client";
-import React, { useState, useEffect, useContext } from "react";
-import { getProducts } from "@/app/request";
-import { Product } from "../../../backend/app/src/interfaces";
-import { SearchContext } from "./searchContext";
-import ProductLayout from "./product/[id]/page";
+import React from "react";
 import "./left_side.css";
 
 /**

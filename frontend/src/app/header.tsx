@@ -12,7 +12,6 @@ import "./header.css";
 import { getUser } from "@/app/request";
 import { User } from "../../../backend/app/src/interfaces";
 import { Modal } from "./components";
-import { SearchContext } from "./searchContext";
 import { redirect } from "next/navigation";
 
 /**
@@ -27,7 +26,6 @@ export function Header() {
     const [username, setUsername] = useState("");
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [error, setError] = useState("");
-    const { setSearchQuery } = useContext(SearchContext);
     const [searchInput, setSearchInput] = useState("");
 
     // open the login modal
@@ -79,7 +77,6 @@ export function Header() {
     // sets the search query when the user types in the search bar
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchInput(e.target.value);
-        setSearchQuery(e.target.value);
     };
 
     // the html for the header

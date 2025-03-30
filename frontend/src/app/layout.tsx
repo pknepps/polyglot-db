@@ -10,9 +10,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Header } from "./header";
-import { RightSide } from "./right_side_component";
 import { LeftSide } from "./left_side_pane";
-import { SearchProvider } from "./searchContext";
 
 // define the fonts used
 const geistSans = localFont({
@@ -38,23 +36,21 @@ export const metadata: Metadata = {
  */
 export default function RootLayout({
     children,
+    rightSide,
 }: Readonly<{
     children: React.ReactNode;
+    rightSide: React.ReactNode;
 }>) {
     return (
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable}`}>
-                <SearchProvider>
-                    <Header />
-                    <div className="flex h-full">
-                        <div className="flex-1">
-                            <LeftSide>{children}</LeftSide>
-                        </div>
-                        <div className="flex-1">
-                            <RightSide />
-                        </div>
+                <Header />
+                <div className="flex h-full">
+                    <div className="flex-1">
+                        <LeftSide>{children}</LeftSide>
                     </div>
-                </SearchProvider>
+                    <div className="flex-1">{rightSide}</div>
+                </div>
             </body>
         </html>
     );
