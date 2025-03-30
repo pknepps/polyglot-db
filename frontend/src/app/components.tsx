@@ -159,13 +159,15 @@ export function MongoSchema({ schema }: { schema: JsonData }) {
     );
 }
 
-export interface PostgresDataTableProps {
+interface DbTableRow {
     data: Record<string, string | number | null>[];
 }
 
-export const PostgresDataTable: React.FC<PostgresDataTableProps> = ({ data }) => {
-    const columns = ["ProductID", "Name", "Price", "Transactions"];
-
+export interface DbTableProps {
+    columnNames: string[];
+    data: DbTableRow[];
+}
+export const DbTable: React.FC<DbTableProps> = ({ data, columnNames }) => {
     if (data.length === 0) {
         return <p>No data available</p>;
     }
@@ -175,8 +177,8 @@ export const PostgresDataTable: React.FC<PostgresDataTableProps> = ({ data }) =>
             <table className="postgres-data-table">
                 <thead>
                     <tr>
-                        {columns.map((column) => (
-                            <th key={column}>{column}</th>
+                        {columnNames.map((columnName) => (
+                            <th key={columnName}>{columnName}</th>
                         ))}
                     </tr>
                 </thead>
@@ -205,6 +207,57 @@ export const PostgresDataTable: React.FC<PostgresDataTableProps> = ({ data }) =>
                                     )}
                                 </td>
                             ))}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+export const PostgresDataTable: React.FC<PostgresDataTableProps> = ({ data }) => {
+    if (data.length === 0) {
+        return <p>No data available</p>;
+    }
+
+    const rows: {
+        productId: string;
+        name: string;
+        price: string;
+        transactions: any[];
+    }[] = [];
+    while (data.length > 0) {
+        const [productId, name, price, transactions] = data.splice(0, 4);
+        rows.push({ productId, name, price, transactions });
+    }
+
+    return (
+        <div className="table-container">
+            <table className="postgres-data-table">
+                <thead>
+                    <tr>
+                        <th>ProductID</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Transactions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows.map((row, index) => (
+                        <tr>
+                            <td>
+                                <ul>
+                                    {row.transactions.map((transaction: any, tIndex: number) => (
+                                        <li key={tIndex}>
+                                            <strong>Transaction ID:</strong> {transaction.transaction_id},{" "}
+                                            <strong>User:</strong> {transaction.username}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                         </tr>
                     ))}
                 </tbody>
