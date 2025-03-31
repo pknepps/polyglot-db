@@ -19,13 +19,25 @@ POSTHeaders.append("Origin", frontendAddress);
 POSTHeaders.append("Access-Control-Request-Method", "POST");
 POSTHeaders.append("Content-Type", "application/json");
 
+export interface PostgresQueryData {
+    ProductID: number;
+    Name: string;
+    Price: number;
+    Transactions: { transaction_id: number; username: string }[];
+}
+
+export interface Neo4jQueryData {
+    nodes: { id: number; label: string; type: string }[];
+    edges: { from: number; to: number; label: string }[];
+}
+
 /**
  * Gets the neo4j graph data.
  *
  * @param productId The unique id of the product.
  * @returns The data from the neo4j database.
  */
-export async function getNeoGraph(productId?: number): Promise<{ nodes: any[]; edges: any[] }> {
+export async function getNeoGraph(productId?: number): Promise<Neo4jQueryData> {
     try {
         const url = productId ? `${backendAddress}neo/graph/${productId}` : `${backendAddress}neo/graph/`;
         const response = await fetch(url, {
@@ -74,8 +86,7 @@ export async function getMongoSchema() {
  * @param productId The unique id of the product.
  * @returns The data from the postgres database.
  */
-export async function getPostgresData(productId?: number): Promise<any[]> {
-    console.log("Postgres button is pressed");
+export async function getPostgresData(productId?: number): Promise<PostgresQueryData[]> {
     try {
         const url = productId ? `${backendAddress}postgres/${productId}` : `${backendAddress}postgres/`;
         const response = await fetch(url, {
@@ -311,4 +322,8 @@ export async function putUser(user: Partial<User> & Pick<User, "username">) {
         }
         return response.statusText; // Parse the response as JSON
     });
+}
+
+export async function testPromise(): Promise<any> {
+    return fetch("http://localhost:8000/api/product/1");
 }

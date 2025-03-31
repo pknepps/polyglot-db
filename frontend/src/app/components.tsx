@@ -3,6 +3,7 @@ import { Product, ProductReview } from "../../../backend/app/src/interfaces";
 import Link from "next/link";
 import { Network } from "vis-network";
 import { JsonData, JsonEditor } from "json-edit-react";
+import { Neo4jQueryData, PostgresQueryData } from "./request";
 
 export function Card({ children }: { children: React.ReactNode }) {
     return <div className="bg-slate-200 px-6 py-6 my-4 rounded-md shadow-md">{children}</div>;
@@ -122,7 +123,7 @@ function PartialProduct({ product }: { product: Partial<Product> }): ReactElemen
  * Define an interface for neo4j graph props.
  */
 export interface NeoGraphProps {
-    data: { nodes: any[]; edges: any[] };
+    data: Neo4jQueryData;
 }
 
 // creates a neo4j graph
@@ -159,76 +160,9 @@ export function MongoSchema({ schema }: { schema: JsonData }) {
     );
 }
 
-interface DbTableRow {
-    data: Record<string, string | number | null>[];
-}
-
-export interface DbTableProps {
-    columnNames: string[];
-    data: DbTableRow[];
-}
-export const DbTable: React.FC<DbTableProps> = ({ data, columnNames }) => {
+export function PostgresDataTable({ data }: { data: PostgresQueryData[] }) {
     if (data.length === 0) {
         return <p>No data available</p>;
-    }
-
-    return (
-        <div className="table-container">
-            <table className="postgres-data-table">
-                <thead>
-                    <tr>
-                        {columnNames.map((columnName) => (
-                            <th key={columnName}>{columnName}</th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {data.map((row, index) => (
-                        <tr key={index}>
-                            {columns.map((column) => (
-                                <td key={column}>
-                                    {column === "Transactions" ? (
-                                        Array.isArray(row.Transactions) && row.Transactions.length > 0 ? (
-                                            <ul>
-                                                {row.Transactions.map((transaction: any, tIndex: number) => (
-                                                    <li key={tIndex}>
-                                                        <strong>Transaction ID:</strong> {transaction.transaction_id},{" "}
-                                                        <strong>User:</strong> {transaction.username}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        ) : (
-                                            "No Transactions"
-                                        )
-                                    ) : row[column] !== undefined && row[column] !== null ? (
-                                        String(row[column])
-                                    ) : (
-                                        "N/A"
-                                    )}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
-};
-
-export const PostgresDataTable: React.FC<PostgresDataTableProps> = ({ data }) => {
-    if (data.length === 0) {
-        return <p>No data available</p>;
-    }
-
-    const rows: {
-        productId: string;
-        name: string;
-        price: string;
-        transactions: any[];
-    }[] = [];
-    while (data.length > 0) {
-        const [productId, name, price, transactions] = data.splice(0, 4);
-        rows.push({ productId, name, price, transactions });
     }
 
     return (
@@ -243,25 +177,25 @@ export const PostgresDataTable: React.FC<PostgresDataTableProps> = ({ data }) =>
                     </tr>
                 </thead>
                 <tbody>
-                    {rows.map((row, index) => (
-                        <tr>
+                    {data.map((row) => (
+                        <tr key={row.ProductID}>
+                            <td>{row.ProductID}</td>
+                            <td>{row.Name}</td>
+                            <td>{row.Price}</td>
                             <td>
                                 <ul>
-                                    {row.transactions.map((transaction: any, tIndex: number) => (
-                                        <li key={tIndex}>
-                                            <strong>Transaction ID:</strong> {transaction.transaction_id},{" "}
-                                            <strong>User:</strong> {transaction.username}
+                                    {row.Transactions.map(({ transaction_id, username }) => (
+                                        <li key={transaction_id}>
+                                            <strong>Transaction ID:</strong> {transaction_id}, <strong>User:</strong>{" "}
+                                            {username}
                                         </li>
                                     ))}
                                 </ul>
                             </td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
                         </tr>
                     ))}
                 </tbody>
             </table>
         </div>
     );
-};
+}
