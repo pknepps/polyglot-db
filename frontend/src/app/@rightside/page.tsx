@@ -1,27 +1,16 @@
-import { Suspense, use, useState } from "react";
-import { DbName, RightSide } from "../right_side_component";
-import { getMongoSchema, getNeoGraph, getPostgresData, testPromise } from "../request";
-import { MongoSchema, NeoGraph, PostgresDataTable } from "../components";
-import PromiseEater from "./furthertesting";
+import { RightSide } from '../right_side_component';
+import { getMongoSchema, getNeoGraph, getPostgresData } from '../request';
 
-export default function RightSideAllProducts() {
-    const myPromise = testPromise();
-    // const postgresData = use(getPostgresData());
-    // const neoGraphData = use(getNeoGraph());
-    // const mongoSchema = use(getMongoSchema());
-    // const [selected, setSelected] = useState<DbName>(DbName.postgres);
+export default async function RightSideAllProducts() {
+  const postgresData = await getPostgresData();
+  const neoGraphData = await getNeoGraph();
+  const mongoSchema = await getMongoSchema();
 
-    // return (
-    //     <RightSide handleButtonClick={(dbName: DbName) => setSelected(dbName)}>
-    //         {selected === DbName.postgres && <PostgresDataTable data={postgresData} />}
-    //         {selected === DbName.mongo && <MongoSchema schema={mongoSchema} />}
-    //         {selected === DbName.neo4j && <NeoGraph data={neoGraphData} />}
-    //         {selected === DbName.neo4j && "hi"}
-    //     </RightSide>
-    // );
-    return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <PromiseEater promise={myPromise} />;
-        </Suspense>
-    );
+  return (
+    <RightSide
+      postgresData={postgresData}
+      mongoSchema={mongoSchema}
+      neoGraphData={neoGraphData}
+    ></RightSide>
+  );
 }
