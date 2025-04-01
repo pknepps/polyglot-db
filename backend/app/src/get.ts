@@ -41,6 +41,21 @@ export async function getProduct(pi: number, mongodb: Db) {
     return new Promise((_, reject) => reject());
   }
 }
+/**
+ * Find and return a product based on a provided product name.
+ * 
+ * @param name The name of the product we are looking for.
+ * @param mongodb The mongoDB that we are looking in.
+ * @returns A promise, either resolves the query result or rejects.
+ */
+export async function getProductByName(name: string, mongodb: Db) {
+  try {
+    return await mongodb.collection('products').findOne({ name: name });
+  } catch (error) {
+    console.log('The product does not exist.');
+    return new Promise((_, reject) => reject());
+  }
+}
 
 /**
  * Find and return a transaction based on a provided transaction id.
