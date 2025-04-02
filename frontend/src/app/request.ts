@@ -23,15 +23,25 @@ POSTHeaders.append('Origin', frontendAddress);
 POSTHeaders.append('Access-Control-Request-Method', 'POST');
 POSTHeaders.append('Content-Type', 'application/json');
 
+export interface PostgresQueryData {
+  ProductID: number;
+  Name: string;
+  Price: number;
+  Transactions: { transaction_id: number; username: string }[];
+}
+
+export interface Neo4jQueryData {
+  nodes: { id: number; label: string; type: string }[];
+  edges: { from: number; to: number; label: string }[];
+}
+
 /**
  * Gets the neo4j graph data.
  *
  * @param productId The unique id of the product.
  * @returns The data from the neo4j database.
  */
-export async function getNeoGraph(
-  productId?: number
-): Promise<{ nodes: any[]; edges: any[] }> {
+export async function getNeoGraph(productId?: number): Promise<Neo4jQueryData> {
   try {
     const url = productId
       ? `${backendAddress}neo/graph/${productId}`
@@ -64,8 +74,7 @@ export async function getNeoGraph(
 }
 
 export async function getMongoSchema() {
-    console.log("Mongo button is pressed");
-    try {
+  try {
     const url = `${backendAddress}mongodb/schema`;
     const response = await fetch(url, {
       method: 'GET',
@@ -89,9 +98,10 @@ export async function getMongoSchema() {
  * @param productId The unique id of the product.
  * @returns The data from the postgres database.
  */
-export async function getPostgresData(productId?: number): Promise<any[]> {
-    console.log("Postgres button is pressed");
-    try {
+export async function getPostgresData(
+  productId?: number
+): Promise<PostgresQueryData[]> {
+  try {
     const url = productId
       ? `${backendAddress}postgres/${productId}`
       : `${backendAddress}postgres/`;
@@ -105,7 +115,6 @@ export async function getPostgresData(productId?: number): Promise<any[]> {
       );
     }
     const data = await response.json();
-    console.log("PostgreSQL Data:", data); // Log the response data
     return data;
   } catch (error) {
     console.error('Error fetching PostgreSQL data:', error);
@@ -126,6 +135,40 @@ export async function getProducts(): Promise<Product[]> {
   return fetch(request)
     .then((response) => response.json())
     .then((response) => response as Product[]);
+}
+
+/**
+ * Search for a product by name or ID.
+ *
+ * @param input The search input, which can be a product name or ID.
+ * @returns The product if found, or null if not found.
+ */
+export async function searchProduct(input: string): Promise<Product | Product[] | null> {
+  try {
+    // check if the input is numeric (assume it's an ID if it's numeric)
+    if (!isNaN(Number(input))) {
+      // fetch product by ID
+      const productId = Number(input);
+      return await getProduct(productId);
+    } else {
+      // fetch product by name
+      const response = await fetch(`${backendAddress}product/name/${encodeURIComponent(input)}`, {
+        method: 'GET',
+        headers: GETHeaders,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch product by name: ${response.statusText}`);
+      }
+
+      const products = await response.json();
+      
+      return products as Product[];
+    }
+  } catch (error) {
+    console.error(`Error searching for product with input "${input}":`, error);
+    return null;
+  }
 }
 
 /**
@@ -198,7 +241,7 @@ export async function getRecommendations(
     const json = await response.json();
     return json as Partial<Product>[];
   } catch (error) {
-    console.error("Error while fetching recommendation:", error);
+    console.error('Error while fetching recommendation:', error);
     throw error;
   }
 }
@@ -359,4 +402,8 @@ export async function putUser(user: Partial<User> & Pick<User, 'username'>) {
     }
     return response.statusText; // Parse the response as JSON
   });
+}
+
+export async function testPromise(): Promise<any> {
+  return fetch('http://localhost:8000/api/product/1');
 }

@@ -17,6 +17,7 @@ import {
   getNeoGraph,
   getPostgresData,
   getMongoProductSchema,
+  getProductByName
 } from './get';
 import { Db } from 'mongodb';
 import { newProduct, newUser, newTransaction } from './create';
@@ -66,6 +67,7 @@ export function createRouter(mongo_db: Db) {
   apiGetNeoGraph(router);
   apiGetPostgresData(router);
   apiGetMongoSchema(router, mongo_db);
+  apiGetProductByName(router, mongo_db);
   return router;
 }
 
@@ -82,6 +84,30 @@ function apiGetProduct(router: Router, mongo_db: Db) {
     getProduct(id, mongo_db)
       .then((product) => res.json(product))
       .catch((_) => res.status(404).send('Not Found.\n'));
+  });
+}
+
+/**
+ * Adds a route to GET products by its name.
+ *
+ * @param router The Express router to add the request to.
+ */
+function apiGetProductByName(router: Router, mongo_db: Db) {
+  router.get('/product/name/:name', async (req: Request, res: Response) => {
+      const encodedName = req.params.name;
+      const name = decodeURIComponent(encodedName); // decode the name
+      console.log(`Received GET request for products with name "${name}"`);
+      try {
+          const product = await getProductByName(name, mongo_db);
+          if (product) {
+              res.json(product);
+          } else {
+              res.status(404).send(`Product with name "${name}" not found.`);
+          }
+      } catch (error) {
+          console.error(`Error fetching product by name: ${error}`);
+          res.status(500).send("Internal Server Error");
+      }
   });
 }
 
