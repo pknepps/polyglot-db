@@ -138,6 +138,40 @@ export async function getProducts(): Promise<Product[]> {
 }
 
 /**
+ * Search for a product by name or ID.
+ *
+ * @param input The search input, which can be a product name or ID.
+ * @returns The product if found, or null if not found.
+ */
+export async function searchProduct(input: string): Promise<Product | Product[] | null> {
+  try {
+    // check if the input is numeric (assume it's an ID if it's numeric)
+    if (!isNaN(Number(input))) {
+      // fetch product by ID
+      const productId = Number(input);
+      return await getProduct(productId);
+    } else {
+      // fetch product by name
+      const response = await fetch(`${backendAddress}product/name/${encodeURIComponent(input)}`, {
+        method: 'GET',
+        headers: GETHeaders,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch product by name: ${response.statusText}`);
+      }
+
+      const products = await response.json();
+      
+      return products as Product[];
+    }
+  } catch (error) {
+    console.error(`Error searching for product with input "${input}":`, error);
+    return null;
+  }
+}
+
+/**
  * Get a specific product.
  *
  * @param productId The unique id of the product.

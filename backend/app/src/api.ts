@@ -88,15 +88,15 @@ function apiGetProduct(router: Router, mongo_db: Db) {
 }
 
 /**
- * Adds a route to GET a product by its name.
+ * Adds a route to GET products by its name.
  *
  * @param router The Express router to add the request to.
  */
 function apiGetProductByName(router: Router, mongo_db: Db) {
   router.get('/product/name/:name', async (req: Request, res: Response) => {
       const encodedName = req.params.name;
-      const name = decodeURIComponent(encodedName); // Decode the name
-      console.log(`Received GET request for product with name "${name}"`);
+      const name = decodeURIComponent(encodedName); // decode the name
+      console.log(`Received GET request for products with name "${name}"`);
       try {
           const product = await getProductByName(name, mongo_db);
           if (product) {
