@@ -10,7 +10,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Header } from "./header";
-import { RightSide } from "./right_side_component";
 import { LeftSide } from "./left_side_pane";
 
 // define the fonts used
@@ -37,20 +36,20 @@ export const metadata: Metadata = {
  */
 export default function RootLayout({
     children,
+    rightSide,
 }: Readonly<{
     children: React.ReactNode;
+    rightSide: React.ReactNode;
 }>) {
     return (
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable}`}>
-                <div className="layout">
-                    <Header />
-                    <div className="flex h-full">
+                <Header />
+                <div className="flex h-full">
+                    <div className="flex-1">
                         <LeftSide>{children}</LeftSide>
-                        <div style={{ width: "50%" }}>
-                            <RightSide />
-                        </div>
                     </div>
+                    <div className="flex-1">{rightSide}</div>
                 </div>
             </body>
         </html>

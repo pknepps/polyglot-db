@@ -7,12 +7,12 @@
  * @Version 11/26/2024
  */
 
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import "./header.css";
-import Image from "next/image";
 import { getUser } from "@/app/request";
 import { User } from "../../../backend/app/src/interfaces";
 import { Modal } from "./components";
+import { redirect } from "next/navigation";
 
 /**
  * Creates the header component for the UI.
@@ -26,6 +26,7 @@ export function Header() {
     const [username, setUsername] = useState("");
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [error, setError] = useState("");
+    const [searchInput, setSearchInput] = useState("");
 
     // open the login modal
     const openLoginModal = () => {
@@ -73,11 +74,18 @@ export function Header() {
         setUsername("");
     };
 
+    // sets the search query when the user types in the search bar
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchInput(e.target.value);
+    };
+
     // the html for the header
     return (
         <header className="bg-sky-600 flex flex-row justify-between align-middle py-2 px-4">
             <div className="header-buttons">
-                <button className="btn">Home</button>
+                <button className="btn" onClick={() => redirect("/") /* TODO: these should probably be links */}>
+                    Home
+                </button>
                 {currentUser ? (
                     <button className="btn" onClick={openUserInfoModal}>
                         {currentUser.username}
@@ -107,12 +115,18 @@ export function Header() {
                     </svg>
                 </button>
 
-                <input type="text" className="search-bar w-s lg:w-md" placeholder="Search Products..." />
+                <input
+                    type="text"
+                    className="search-bar w-s lg:w-md"
+                    placeholder="Search Products..."
+                    value={searchInput}
+                    onChange={handleSearch}
+                />
             </div>
             <div className="header-buttons">
                 {currentUser ? (
                     <>
-                        <button className="header-button" onClick={handleSignOut}>
+                        <button className="btn" onClick={handleSignOut}>
                             Log-Out
                         </button>
                     </>
