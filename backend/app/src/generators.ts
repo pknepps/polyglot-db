@@ -9,9 +9,7 @@
 // these are the required imports
 import { UserRecord, ProductRecord, TransactionRecord, User, Product } from "./interfaces";
 import { faker } from "@faker-js/faker";
-import { post_pass, sanitize } from "./index";
-import { getAllPostgresAddresses, getAllPostgressConnections, getPostgressAddress, pgConnections } from "./shard";
-import { Pool } from "pg";
+import { sanitize, db} from "./index";
 
 /** Generates a new user. **/
 export function randUser(): [UserRecord, User] {
@@ -161,23 +159,13 @@ export async function randTransaction(n: number): Promise<TransactionRecord[]> {
 /**
  * Helper function which queries for all active users and returns the list of usernames.
  */
-async function getUserNames(): Promise<{ username: string }[]> {
-    const postgresAddrs = getAllPostgresAddresses();
-    return Promise.all(
-        getAllPostgressConnections().map((db) =>
-            db.query("SELECT username FROM USERS").then((data) => data.rows as any as { username: string }[])
-        )
-    ).then((arrOfArrs) => arrOfArrs.flat());
+function getUserNames(): Promise<{ username: string }[]> {
+    return db.query("SELECT username FROM USERS").then((data) => data.rows as any as { username: string }[])
 }
 
 /**
  * Helper function which queries for all active products and returns the list of product id's.
  */
 async function getProductIDs(): Promise<{ product_id: number }[]> {
-    const postgresAddrs = getAllPostgresAddresses();
-    return Promise.all(
-        getAllPostgressConnections().map((db) =>
-            db.query("SELECT product_id FROM PRODUCTS").then((data) => data.rows as any as { product_id: number }[])
-        )
-    ).then((arrOfArrs) => arrOfArrs.flat());
+    return db.query("SELECT product_id FROM PRODUCTS").then((data) => data.rows as any as { product_id: number }[])
 }

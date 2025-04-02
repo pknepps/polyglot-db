@@ -7,26 +7,25 @@
  */
 
 // these are the required imports
-import { randProduct, randRatings, randReviews, randTransaction, randUser } from "./generators";
-import { Product, ProductRecord, TransactionRecord, User, UserRecord } from "./interfaces";
-import { newProduct, newTransaction, newUser } from "./create";
-import { addRating, addReview } from "./update";
-import { Pool } from "pg";
-import { readFileSync } from "fs";
-import * as readline from "readline/promises";
-import { Db, MongoClient } from "mongodb";
-import neo4j from "neo4j-driver";
-import { recommend_from_product } from "./recommend";
+import {randProduct, randRatings, randReviews, randTransaction, randUser} from "./generators";
+import {Product, ProductRecord, TransactionRecord, User, UserRecord} from "./interfaces";
+import {newProduct, newTransaction, newUser} from "./create";
+import {addRating, addReview} from "./update";
+import {Pool} from 'pg';
+import {readFileSync} from 'fs';
+import * as readline from 'readline/promises';
+import {Db, MongoClient} from "mongodb";
+import neo4j from 'neo4j-driver';
+import {recommend_from_product} from "./recommend";
 import express from "express";
-import { createRouter } from "./api";
+import {createRouter} from "./api";
 import cors from "cors";
 import { createClient, RedisClientType } from "redis";
-import { getAllPostgresAddresses, getAllPostgressConnections, pgConnections } from "./shard";
 
 // this is used to interact with the user on the command line
 const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout,
+    output: process.stdout
 });
 
 // gets the postgres password from a file
@@ -39,19 +38,30 @@ export const redisPass: string = readFileSync("./REDIS_PASSWORD", "utf-8");
 //@ts-ignore
 export let redis;
 
+export const db = new Pool({
+    user: 'postgres',
+    host: 'pknepps.net',
+    password: post_pass,
+    port: 5432
+});
+
+
 // gets the postgres password from a file
 
 // creates a neo4j driver
-export const neoDriver = neo4j.driver("neo4j://pknepps.net:7687", neo4j.auth.basic("neo4j", neo_pass));
+export const neoDriver = neo4j.driver(
+    'neo4j://pknepps.net:7687',
+    neo4j.auth.basic('neo4j', neo_pass)
+);
 
 /**
- * This is responsible for establishing a connection to Mongo.
- *
+ * This is responsible for establishing a connection to Mongo. 
+ * 
  * @returns If connection is successful then returns the mongodb database.
  */
 async function connectMongo(): Promise<Db> {
     let mongodb: Db | null = null;
-    try {
+    try{
         // gets the mongodb password from a file
 
         // the parts needed to create mongodb connection
@@ -63,17 +73,17 @@ async function connectMongo(): Promise<Db> {
 
         // console.log(client);
         // connect to the client
-        try {
+        try{
             await client.connect();
-        } catch (e) {
-            console.log("There was an error making the connection to mongodb: ", e);
+        } catch(e){
+            console.log(("There was an error making the connection to mongodb: "), e);
         }
 
         // return the desired database
         mongodb = client.db(dbName);
 
-        // catch and handle any errors trying to connect to mongo
-    } catch (err) {
+    // catch and handle any errors trying to connect to mongo
+    } catch(err){
         console.log("Error connecting to MongoDb", err);
     }
     return new Promise((resolve, reject) => {
@@ -103,13 +113,13 @@ async function connectRedis() {
 
 /**
  * This is a helper function for interact that performs the necessary things to
- * insert a user.
- *
+ * insert a user. 
+ * 
  * @param mongo_db The mongodb database.
  */
 async function caseOne(mongo_db: Db) {
     // insert the new user
-    try {
+    try{
         // get the needed information to create a user
         const username = await rl.question("Enter username: ");
         const firstName = await rl.question("Enter first name: ");
@@ -118,24 +128,15 @@ async function caseOne(mongo_db: Db) {
 
         // create a User object
         const user: User = {
-            username: username,
-            firstName: firstName,
-            lastName: lastName,
-            middleName: middleName,
-            addresses: [],
-            payments: [],
-            transactions: [],
-            ratings: [],
-            reviews: [],
-        };
+            username: username, firstName: firstName, lastName: lastName, middleName: middleName,
+            addresses: [], payments: [], transactions: [], ratings: [], reviews: []
+        }
         // create the corresponding record
         const user_record: UserRecord = {
-            username: username,
-            firstName: firstName,
-            lastName: lastName,
+            username: username, firstName: firstName, lastName: lastName
         };
         newUser(user_record, user, mongo_db);
-    } catch (error) {
+    } catch(error){
         console.log("Error inserting user: ", error);
     }
 }
@@ -143,19 +144,19 @@ async function caseOne(mongo_db: Db) {
 /**
  * This is a helper function for interact that performs the necessary things to
  * insert a product.
- *
+ * 
  * @param mongo_db The mongodb database.
  */
 async function caseTwo(mongo_db: Db) {
     let price: number = -1;
     let validPrice = false;
     // insert the new product
-    try {
+    try{
         // loop until valid price is entered
         while (!validPrice) {
             const priceInput = await rl.question("Enter product price: ");
             price = Number(priceInput);
-
+            
             if (!isNaN(price) && price > 0) {
                 validPrice = true;
             } else {
@@ -180,46 +181,32 @@ async function caseTwo(mongo_db: Db) {
         };
         // pass the products off
         newProduct(product_record, product, mongo_db);
-    } catch (error) {
+    } catch(error){
         console.log("Error inserting product: ", error);
     }
 }
 
 /**
  * This is a helper function for interact that performs the necessary things to
- * insert a transaction.
- *
+ * insert a transaction. 
+ * 
  * @param mongo_db The mongodb database.
  */
 async function caseThree(mongo_db: Db) {
     let validTransaction = false;
 
-    const dbs = getAllPostgressConnections();
     while (!validTransaction) {
         try {
             const username1 = await rl.question("Enter a valid username: ");
             const product_id1 = await rl.question("Enter a valid product id: ");
 
             // Check if username exists
-            const userCheck = (
-                await Promise.all(
-                    dbs.map((db) =>
-                        db
-                            .query(`SELECT * FROM USERS WHERE username = $1`, [username1])
-                            .then((result) => result.rowCount === 1)
-                    )
-                )
-            ).reduce((prev, current) => prev || current);
-            const productCheck = (
-                await Promise.all(
-                    dbs.map((db) =>
-                        db
-                            .query(`SELECT * FROM PRODUCTS WHERE product_id = $1`, [product_id1])
-                            .then((result) => result.rowCount === 1)
-                    )
-                )
-            ).reduce((prev, current) => prev || current);
-
+            const userCheck = db
+                .query(`SELECT * FROM USERS WHERE username = $1`, [username1])
+                .then((result) => result.rowCount === 1)
+            const productCheck = db
+                .query(`SELECT * FROM PRODUCTS WHERE product_id = $1`, [product_id1])
+                .then((result) => result.rowCount === 1)
             if (!userCheck && !productCheck) {
                 // proceed to gather transaction details
                 const card_num = await rl.question("Enter a card number: ");
@@ -230,25 +217,21 @@ async function caseThree(mongo_db: Db) {
 
                 // create the transaction object
                 const transaction: TransactionRecord = {
-                    username: username1,
-                    productId: Number(product_id1),
-                    cardNum: Number(card_num),
-                    address: address,
-                    city: city,
-                    state: state,
-                    zip: Number(zip),
-                    transactionId: 0,
+                    username: username1, productId: Number(product_id1), cardNum: Number(card_num), 
+                    address: address, city: city, state: state, zip: Number(zip), transactionId: 0
                 };
 
                 // Insert the new transaction
-                try {
+                try{
                     newTransaction(transaction, mongo_db);
-                } catch (error) {
+                } catch(error){
                     console.log("Error inserting transaction: ", error);
                 }
                 validTransaction = true; // Exit the loop after successful insertion
             } else {
-                console.log("Either the username or the product ID is not valid. Please try again.");
+                console.log(
+                    "Either the username or the product ID is not valid. Please try again."
+                );
             }
         } catch (e) {
             console.log("An exception happened while waiting for a response from user: ");
@@ -259,7 +242,7 @@ async function caseThree(mongo_db: Db) {
 /**
  * This is a helper function for interact that creates new ratings and reviews
  * to be added.
- *
+ * 
  * @param mongo_db The mongodb database.
  */
 async function caseFour(mongo_db: Db) {
@@ -268,25 +251,27 @@ async function caseFour(mongo_db: Db) {
         const product_id: number = Number(await rl.question("Enter a valid product id: "));
         const rating: number = Number(await rl.question("Enter a rating (1-5): "));
         const review = await rl.question("Enter a review: ");
-        const rateview = { username, product_id, rating, review };
+        const rateview = {username, product_id, rating, review};
         addRating(rateview, mongo_db);
         addReview(rateview, mongo_db);
-    } catch (e) {
-        console.log("Exception updating ratings and reviews: ", e);
+    } catch(e) {
+        console.log("Exception updating ratings and reviews: ", e)
     }
 }
 
 /**
  * This is a helper function for interact that creates random entries to be added
  * to the datasets.
- *
+ * 
  * @param mongo_db The mongodb database.
  */
 async function caseFive(mongo_db: Db) {
     try {
-        const decision = (await rl.question("Data will be inserted into which table: ")).toLowerCase();
+        const decision = (await rl.question(
+            "Data will be inserted into which table: ")
+        ).toLowerCase();
         const quantityInput = await rl.question("How many random entries: ");
-        const quantity = parseInt(quantityInput);
+        const quantity = parseInt(quantityInput); 
         switch (decision) {
             case "users":
                 for (let i = 0; i < quantity; i++) {
@@ -304,37 +289,43 @@ async function caseFive(mongo_db: Db) {
                 break;
             case "transactions":
                 randTransaction(quantity)
-                    .then((result) => {
-                        result.map((transaction) => newTransaction(transaction, mongo_db));
-                        console.log(`Inserted ${quantity} random transactions into the TRANSACTIONS table.`);
+                    .then(result => {
+                        result.map(transaction => newTransaction(transaction, mongo_db));
+                        console.log(
+                            `Inserted ${quantity} random transactions into the TRANSACTIONS table.`
+                        );
                     })
-                    .catch((e) => console.log("An exception has occurred while inserting into transactions: " + e));
+                    .catch(e => console.log(
+                        "An exception has occurred while inserting into transactions: " + e
+                    ));
                 break;
             case "ratings":
             case "reviews":
                 randRatings(quantity)
-                    .then((result) => {
-                        result.map((rating) => addRating(rating, mongo_db));
-                        console.log(`Added ${quantity} random ratings to users and products.`);
+                    .then(result => {
+                        result.map(rating => addRating(rating, mongo_db));
+                        console.log(`Added ${quantity} random ratings to users and products.`)
                     })
-                    .catch((e) => console.log("An exception has occurred while updating users and products: ", e));
-                randReviews(quantity)
-                    .then((result) => {
-                        result.map((review) => addReview(review, mongo_db));
-                        console.log(`Added ${quantity} random reviews to users and products.`);
+                    .catch(e => console.log(
+                        "An exception has occurred while updating users and products: ", e
+                    ));
+                    randReviews(quantity)
+                    .then(result => {
+                        result.map(review => addReview(review, mongo_db));
+                        console.log(`Added ${quantity} random reviews to users and products.`)
                     })
-                    .catch((e) => console.log("An exception has occurred while updating users and products: ", e));
+                    .catch(e => console.log(
+                        "An exception has occurred while updating users and products: ", e
+                    ));
                 break;
             default:
-                console.log(
-                    "Invalid table name. Please choose 'users', 'products', \
-                'transactions', 'ratings', or 'reviews."
-                );
+                console.log("Invalid table name. Please choose 'users', 'products', \
+                'transactions', 'ratings', or 'reviews.");
                 break;
         }
-    } catch (error) {
+    } catch(error){
         console.log("Error creating object: ", error);
-    }
+    }    
 }
 
 async function caseSix() {
@@ -352,7 +343,7 @@ async function caseSix() {
  * @param str The String that needs to be sanitized.
  * @returns The sanitized string.
  */
-export function sanitize(str: String) {
+export function sanitize(str: String){
     return str.replace(/["'`]/g, "^");
 }
 
@@ -362,7 +353,8 @@ export function sanitize(str: String) {
  * @param mongo_db The mongodb database.
  */
 async function interact(mongo_db: Db) {
-    let output: string = `Please make a numerical choice from below: 
+    let output: string = 
+    `Please make a numerical choice from below: 
      [0] Quit
      [1] Insert User
      [2] Insert Product
@@ -372,42 +364,42 @@ async function interact(mongo_db: Db) {
      [6] Recommended Products`;
     output += "\nChoice: ";
 
-    while (true) {
+    while(true){
         try {
             // user choice
             const answer = await rl.question(output);
             console.log();
             // what we do according to each choice
-            switch (answer) {
-                // exit the menu
-                case "0":
-                    console.log("Goodbye");
-                    rl.close();
-                    process.exit();
-                    break;
-                // create a user
-                case "1":
-                    await caseOne(mongo_db);
-                    break;
-                // create a product
-                case "2":
-                    await caseTwo(mongo_db);
-                    break;
-                case "3":
-                    await caseThree(mongo_db);
-                    break;
-                case "4":
-                    await caseFour(mongo_db);
-                    break;
-                case "5":
-                    await caseFive(mongo_db);
-                    break;
-                case "6":
-                    await caseSix();
-                    break;
-                default:
-                    // console.log('Not a valid choice!');
-                    break;
+            switch(answer) {
+            // exit the menu
+            case '0':
+                console.log('Goodbye');
+                rl.close();
+                process.exit();
+                break;
+            // create a user
+            case '1':
+                await caseOne(mongo_db);
+                break;
+            // create a product
+            case '2':
+                await caseTwo(mongo_db);
+                break;
+            case '3':
+                await caseThree(mongo_db);
+                break;
+            case '4':
+                await caseFour(mongo_db);
+                break;
+            case '5':
+                await caseFive(mongo_db);
+                break;
+            case '6':
+                await caseSix();
+                break;
+            default:
+                // console.log('Not a valid choice!');
+                break;
             }
         } catch {
             console.log("user input failed on main select");
@@ -416,23 +408,22 @@ async function interact(mongo_db: Db) {
 }
 
 /**
- * This function is responsible for initializing the connection to each of the databases.
+ * This function is responsible for initializing the connection to each of the databases. 
  * It then calls the interact method so the user can perform operations on the databases.
  */
 async function start() {
     redis = await connectRedis();
-    console.log(await getAllPostgresAddresses());
     try {
         try {
             const mongodb = await connectMongo();
-            console.log("Connection to mongodb established");
+            console.log('Connection to mongodb established')
             try {
-                const serverInfo = await neoDriver.getServerInfo();
-                console.log("Connection to neo4j established");
-                console.log(serverInfo);
-            } catch (err) {
-                console.log(`Connection error\n${err}`);
-            }
+                const serverInfo = await neoDriver.getServerInfo()
+                console.log('Connection to neo4j established')
+                console.log(serverInfo)
+              } catch(err) {
+                console.log(`Connection error\n${err}`)
+              }
             // pass in mongodb as argument to interact
             const app = express();
             const port = process.env.PORT || 8000;
@@ -446,7 +437,7 @@ async function start() {
             console.log("Unable to connect to mongodb.\n", e);
         }
     } catch (e) {
-        console.log("An error happened when trying to get the current transaction and product ids: ", e);
+        console.log("An error happened when trying to get the current transaction and product ids: ", e)
     }
 }
 
