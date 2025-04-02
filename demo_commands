@@ -3,6 +3,10 @@ curl -H 'Content-Type: application/json' -d '{ "name":"polyjuice potion", "price
 curl -H 'Content-Type: application/json' -d '{ "username": "pknepps", "product_id": 14, "review": 4}' -X POST http://localhost:8000/api/rating/
 curl -H 'Content-Type: application/json' -d '{ "username": "pknepps", "product_id": 14, "review": "my review here"}' -X POST http://localhost:8000/api/review/
 curl -H 'Content-Type: application/json' -d '{ "price": .99}' -X PUT http://localhost:8000/api/product/14
-curl -H 'Content-Type: application/json' -d '{ "firstName": "megatron"}' -X PUT http://localhost:8000/api/user/pknepps
+curl -H 'Content-Type: application/json' -d '{ "firstName": "megatron" }' -X PUT http://localhost:8000/api/user/pknepps
 // Clears redis database
 redis-cli -h pknepps.net -a --scan --pattern '*' | xargs redis-cli -h pknepps.net -a rojoes DEL
+curl -H 'Content-Type: application/json' -d '{ "quantity": 10 }' -X POST http://localhost:8000/api/generate/users
+curl -H 'Content-Type: application/json' -d '{ "quantity": 10 }' -X POST http://localhost:8000/api/generate/transactions
+curl -H 'Content-Type: application/json' -d '{ "quantity": 10 }' -X POST http://localhost:8000/api/generate/reviews
+curl -H 'Content-Type: application/json' -d '{ "quantity": 10 }' -X POST http://localhost:8000/api/generate/products

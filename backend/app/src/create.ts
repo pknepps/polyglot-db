@@ -1,168 +1,145 @@
 /**
  * This module is responsible for creating new users, products, and transactions.
- * 
+ *
  * @author Preston Knepper and Dalton Rogers
  * @version 10/28/2024
  */
 
 // these are the required imports
 import { EagerResult } from "neo4j-driver";
-import {db, curr_pid, curr_tid, increment, neoDriver, sanitize, decrement} from "./index";
+import { neoDriver, sanitize, db, redis } from "./index";
 import { UserRecord, ProductRecord, TransactionRecord, User, Product } from "./interfaces";
 import { Db } from "mongodb";
 
 /**
  * This is responsible for creating a new user.
- * 
+ *
  * @param ur The UserRecord object.
  * @param u The User object.
  * @param mongo_db The mongodb database.
  */
-export function newUser(ur: UserRecord, u: User, mongo_db: Db) {
+export async function newUser(ur: UserRecord, u: User, mongo_db: Db) {
     // Sanitization
     ur.firstName = sanitize(ur.firstName);
     ur.lastName = sanitize(ur.lastName);
     ur.username = sanitize(ur.username);
     if (ur.username.length > 50) {
-        throw new Error('Username has too many characters');
+        throw new Error("Username has too many characters");
     }
     if (ur.firstName.length > 50) {
-        throw new Error('First name has too many characters');
+        throw new Error("First name has too many characters");
     }
     if (ur.lastName.length > 50) {
-        throw new Error('Last name has too many characters');
+        throw new Error("Last name has too many characters");
     }
+
     // compose the query in an acceptable manner to insert a user record
     let userInsert: string = `INSERT INTO USERS 
         VALUES ('${ur.username}', '${ur.firstName}', '${ur.lastName}');`;
     // do the actual query in the postgreSQL database
-    db.query(userInsert)
-        .then(_ => {
-            console.log(`Inserted ${ur.username} into USERS`);
-
-            // access the users collection and find the certain username
-            return mongo_db.collection("users").findOne({ username: u.username });
-        })
-        .catch(error => {
-            if (error.code === '23505') {
+    return db
+        .query(userInsert)
+        .then(() => console.log(`Inserted ${ur.username} into USERS`))
+        .catch((error) => {
+            if (error.code === "23505") {
                 console.log(`The username '${ur.username}' already exists, try another username.`);
             } else {
                 // general error handling for other types of errors
                 console.log("Postgres rejected query", userInsert, "\nwith error: ", error);
             }
+            throw error;
         })
-        .then(existingUser => {
-            if(existingUser === null) {
-                return mongo_db.collection("users").insertOne(u);
+        .then(() => mongo_db.collection("users").findOne({ username: u.username }))
+        .then(async (existingUser) => {
+            if (existingUser === null) {
+                await mongo_db.collection("users").insertOne(u);
+                return console.log(`Inserted ${u.username} into MongoDB users collection.`);
             } else {
-                return new Promise((_, reject) => reject(
-                    `The username exists within the mongo collection, try another username.`
-                ));
+                throw new Error(`The username exists within the mongo collection, try another username.`);
             }
         })
-        .catch(error => {
-            console.log("Mongodb rejected query with error: ", error);
-            return new Promise((_, reject) => reject()); 
-        })
-        .then(_ => {
-            console.log(`Inserted ${u.username} into MongoDB users collection.`);
-
+        .then(() =>
             // add the user to the neo4j session
-            return neoDriver.executeQuery(`CREATE (u:User {username: "${ur.username}"})`);
-        })
-        .catch(error => {
-            if (error) {
-                console.log("mongodb rejected query with error: ", error);
-            }
-            return new Promise((_, reject) => reject()); 
-        })
-        .then(_ => console.log(`Inserted ${ur.username} into neo4j`))
-        .catch(error => {
-            if (error) {
-                console.log("Neo4j rejected query with error: ", error);
-            }
+            neoDriver
+                .executeQuery(`CREATE (u:User {username: "${ur.username}"})`)
+                .then(() => console.log(`Inserted ${ur.username} into neo4j`))
+        )
+        .catch((error) => {
+            console.log("An error occured when adding a user: ", error);
+            throw error;
         });
 }
 
 /**
  * This is responsible for creating a new product.
- * 
+ *
  * @param pr The ProductRecord object.
  * @param p The Product object.
  * @param mongo_db The mongodb database.
  */
-export function newProduct(pr: ProductRecord, p: Product, mongo_db: Db) {
+export async function newProduct(pr: ProductRecord, p: Product, mongo_db: Db) {
     if (pr.name.length > 255) {
-        console.log()
         throw new Error("Product name has too many characters.");
     }
 
     // increment the current pid
-    increment("curr_pid");
+    const curr_pid = await redis.incr("curr_product_id");
     pr.productId = curr_pid;
     p.product_id = curr_pid;
-    
+
     // compose the query to insert a product
     let productInsert: string = `INSERT INTO PRODUCTS 
         VALUES ('${pr.productId}', '${parseFloat(pr.price.toFixed(2))}', '${pr.name}');`;
-    
-    // execute the query
-    db.query(productInsert)
-        .then(_ => {
-            console.log(`Inserted ${pr.productId} into PRODUCTS.`);
-            
-            // insert the product into the mongodb collection
-            return mongo_db.collection("products").findOne({ product_id: p.product_id });
-        })
-        .catch(err => {
-            console.log("Postgres rejected query: ", productInsert, "\nwith error: ", err);
-            decrement("curr_pid")
-        })
-        .then(existingProduct => {
-            if(existingProduct === null) {
-                return mongo_db.collection("products").insertOne(p);
-            } else{
-                return new Promise((_, reject) => reject(
-                    `The product exists within the mongo collection, try another product_id.`
-                ));
-            }
-        })
-        .catch(error => {
-            console.log("mongodb rejected query with error: ", error);
-            return new Promise((_, reject) => reject());
-        })
-        .then(_ => {
-            console.log(`Inserted ${p.product_id} into MongoDB products collection.`);          
 
-            return neoDriver.executeQuery(
-                `CREATE (p:Product {product_id: $product_id, name: $name, price: $price})`,
-                {product_id: pr.productId, name: pr.name, price: pr.price});
+    // execute the query
+    return db
+        .query(productInsert)
+        .then(() => console.log(`Inserted ${pr.productId} into PRODUCTS.`))
+        .catch(async (err) => {
+            console.log("Postgres rejected query: ", productInsert, "\nwith error: ", err);
+            await redis.decr("curr_product_id");
+            throw err;
         })
-        .catch(error => {
-            if (error){
-                console.log("mongodb rejected query with error: ", error);
-                return new Promise((_, reject) => reject());
+        // insert the product into the mongodb collection
+        .then(() => mongo_db.collection("products").findOne({ product_id: p.product_id }))
+        .then(async (existingProduct) => {
+            if (existingProduct === null) {
+                await mongo_db.collection("products").insertOne(p);
+                return console.log(`Inserted ${p.product_id} into MongoDB products collection.`);
+            } else {
+                throw new Error(`The product exists within the mongo collection, try another product_id.`);
             }
         })
-        .then(_ => console.log(`Inserted ${pr.productId} into neo4j`))
-        .catch(error => {
-            if (error) {
-                console.log("Neo4j rejected query with error: ", error);
-            }
-        });
-    }
+        .then(() =>
+            neoDriver
+                .executeQuery(`CREATE (p:Product {product_id: $product_id, name: $name, price: $price})`, {
+                    product_id: pr.productId,
+                    name: pr.name,
+                    price: pr.price,
+                })
+                .then(() => console.log(`Inserted ${pr.productId} into neo4j`))
+                .catch((error) => {
+                    console.log("Neo4j rejected query with error: ", error);
+                    throw error;
+                })
+        )
+        .catch((err) => {
+            console.log("An error occured while adding new product: ", err);
+            throw err;
+        })
+}
 
 /**
  * Creates a new transaction based on the input data.
- * 
- * @param t The TransactionRecord object that contains the transactionId, username, productId, 
+ *
+ * @param t The TransactionRecord object that contains the transactionId, username, productId,
  * card num, address, city, state, and zip.
  * @param mongo_db The mongo database to query.
  * @returns A Promise that is either resolved or rejected depending on the outcome of the query.
  */
-export function newTransaction(t: TransactionRecord, mongo_db: Db) {
+export async function newTransaction(t: TransactionRecord, mongo_db: Db) {
     // increment the transaction id
-    increment("curr_tid");
+    const curr_tid = await redis.incr("curr_transaction_id");
     t.transactionId = curr_tid;
 
     // compose the query in an acceptable manner to insert a transaction
@@ -171,61 +148,57 @@ export function newTransaction(t: TransactionRecord, mongo_db: Db) {
             '${t.state}', '${t.zip}');`;
 
     // execute the query
-    db.query(transactionInsert)
-        .then(_ => {
-            console.log(`Inserted ${curr_tid} into TRANSACTIONS`);
-            // if the transaction is able to be updated successfully then we need to update the
-            // corresponding user's information
-
-            // the address object and payment object
+    return db
+        .query(transactionInsert)
+        .then(() => console.log(`Inserted ${curr_tid} into TRANSACTIONS`))
+        .catch(async (error) => {
+            if (error.code) {
+                console.log("Postgres rejected query: ", transactionInsert, "\nwith error: ", error);
+            } else {
+                console.error("Unexpected error while updating the user after a transaction:", error);
+            }
+            await redis.decr("curr_transaction_id");
+            throw error;
+        })
+        // if the transaction is able to be updated successfully then we need to update the
+        // corresponding user's information
+        // the address object and payment object
+        .then(() => {
             const address = {
                 address: t.address,
                 city: t.city,
                 state: t.state,
-                zip: t.zip
-            }
-            const payment = {cardnum: t.cardNum}
+                zip: t.zip,
+            };
+            const payment = { cardnum: t.cardNum };
 
             // access and update the users when a transaction is made
-            return mongo_db.collection("users").updateOne(
-                { username: t.username },
-                {  
-                    $addToSet: { 
-                        transactions: t.transactionId, addresses: address, payments: payment }
-                }
-        )})
-        .catch(error => {
-            if (error.code) {
-                console.log(
-                    "Postgres rejected query: ", transactionInsert, "\nwith error: ", error
-                );
-            } else {
-                console.error(
-                    "Unexpected error while updating the user after a transaction:", error
-                );
-            }
-            return new Promise((_, reject) => reject());
+            return mongo_db
+                .collection("users")
+                .updateOne(
+                    { username: t.username },
+                    {
+                        $addToSet: {
+                            transactions: t.transactionId,
+                            addresses: address,
+                            payments: payment,
+                        },
+                    }
+                )
+                .then(() => console.log(`User updated with transaction ID ${curr_tid}.`));
         })
-        .then(_ => {
-                console.log(`User updated with transaction ID ${curr_tid}.`);
-
-                return neoDriver.executeQuery(
+        .then(() =>
+            neoDriver
+                .executeQuery(
                     `MATCH (u:User {username: $username}) 
-                    MATCH (p:Product {product_id: $product_id}) 
-                    CREATE (u)-[:BOUGHT]->(p)`,
-                    {username:t.username, product_id:t.productId});
+                MATCH (p:Product {product_id: $product_id}) 
+                CREATE (u)-[:BOUGHT]->(p)`,
+                    { username: t.username, product_id: t.productId }
+                )
+                .then(() => console.log(`Made transaction between ${t.username} and ${t.productId} into neo4j`))
+        )
+        .catch((error) => {
+            console.log("An error occured while adding new product: ", error);
+            throw error;
         })
-        .catch(error => {
-            console.log("mongodb rejected query with error: ", error);
-
-            return new Promise<EagerResult>((_, reject) => reject());
-        })
-        .then(_ => console.log(
-            `Made transaction between ${t.username} and ${t.productId} into neo4j`
-        ))
-        .catch(error => {
-            if (error) {
-                console.log("Neo4j rejected query with error: ", error);
-            }
-        });
 }

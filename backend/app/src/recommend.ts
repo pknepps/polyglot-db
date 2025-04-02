@@ -35,7 +35,7 @@ export async function recommend_from_product(product_id: number): Promise<
                 price: record.get('p.price'), };
         });
     } catch (err) {
-        console.log("neo4j rejected query with error:", err)
+        console.error("neo4j rejected query with error:", err)
     }
     return new Promise((_, reject) => reject());
 }

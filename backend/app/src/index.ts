@@ -11,6 +11,7 @@ import {randProduct, randRatings, randReviews, randTransaction, randUser} from "
 import {Product, ProductRecord, TransactionRecord, User, UserRecord} from "./interfaces";
 import {newProduct, newTransaction, newUser} from "./create";
 import {addRating, addReview} from "./update";
+import { createClient } from "redis"
 import {Pool} from 'pg';
 import {readFileSync} from 'fs';
 import * as readline from 'readline/promises';
@@ -27,14 +28,16 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-// keeps track of the current product id, ensures unique values
-export let curr_pid: number = 0;
-// keeps track of the current transaction id, ensures unique values
-export let curr_tid: number = 0;
 // gets the postgres password from a file
-const post_pass: string = readFileSync('./POSTGRES_PASSWORD', 'utf-8');
+export const post_pass: string = readFileSync("./POSTGRES_PASSWORD", "utf-8");
+export const neo_pass: string = readFileSync("./NEO4J_PASSWORD", "utf-8");
+export const mong_pass: string = readFileSync("./MONGODB_PASSWORD", "utf-8");
+export const redisPass: string = readFileSync("./REDIS_PASSWORD", "utf-8");
 
-// allows the connection to the postgresql server
+// redis for sharding
+//@ts-ignore
+export let redis;
+
 export const db = new Pool({
     user: 'postgres',
     host: 'pknepps.net',
@@ -42,8 +45,8 @@ export const db = new Pool({
     port: 5432
 });
 
+
 // gets the postgres password from a file
-const neo_pass: string = readFileSync('./NEO4J_PASSWORD', 'utf-8');
 
 // creates a neo4j driver
 export const neoDriver = neo4j.driver(
@@ -60,7 +63,6 @@ async function connectMongo(): Promise<Db> {
     let mongodb: Db | null = null;
     try{
         // gets the mongodb password from a file
-        const mong_pass: string = readFileSync('./MONGODB_PASSWORD', 'utf-8');
 
         // the parts needed to create mongodb connection
         const mong_uri: string = "mongodb://mongo:" + mong_pass + "@pknepps.net/?authSource=admin";
@@ -93,30 +95,20 @@ async function connectMongo(): Promise<Db> {
     });
 }
 
-/**
- * This function will increment the provided id, either pid or tid.
- * 
- * @param idName The id that will be incremented.
- */
-export function increment(idName: string) {
-    if(idName === "curr_pid") {
-        curr_pid++;
-    } else {
-        curr_tid++;
-    }
-}
+async function connectRedis() {
+    // the parts needed to create redis connection
+    // use a connection string in the format redis[s]://[[username][:password]@][host][:port][/db-number]:
+    const redisUri: string = "redis://:" + redisPass + "@pknepps.net";
 
-/**
- * This function will decrement the provided id, either pid or tid.
- *
- * @param idName The id that will be incremented.
- */
-export function decrement(idName: string) {
-    if(idName === "curr_pid") {
-        curr_pid--;
-    } else {
-        curr_tid--;
-    }
+    const redis = createClient({ url: redisUri });
+
+    // log an error message for connection errors
+    redis.on("error", (err) => console.log("Redis Client Error", err));
+
+    // connect to server
+    await redis.connect();
+
+    return redis;
 }
 
 /**
@@ -173,14 +165,19 @@ async function caseTwo(mongo_db: Db) {
         }
         // get the needed information to create a product
         const name = await rl.question("Enter product name: ");
-        // increment th current product id
-        ++curr_pid;
         // create a Product object and ProductRecord object
+        // with a placeholder productid (updated when the newProduct is called)
         const product: Product = {
-            product_id: curr_pid, name: name, price: price, ratings: [], reviews: []
-        }
+            product_id: 69,
+            name: name,
+            price: price,
+            ratings: [],
+            reviews: [],
+        };
         const product_record: ProductRecord = {
-            productId: curr_pid, price: Number(price), name: name
+            productId: 69,
+            price: Number(price),
+            name: name,
         };
         // pass the products off
         newProduct(product_record, product, mongo_db);
@@ -197,6 +194,7 @@ async function caseTwo(mongo_db: Db) {
  */
 async function caseThree(mongo_db: Db) {
     let validTransaction = false;
+
     while (!validTransaction) {
         try {
             const username1 = await rl.question("Enter a valid username: ");
@@ -417,9 +415,8 @@ async function interact(mongo_db: Db) {
  * It then calls the interact method so the user can perform operations on the databases.
  */
 async function start() {
+    redis = await connectRedis();
     try {
-        curr_pid = (await db.query("SELECT MAX(product_id) FROM PRODUCTS;")).rows[0].max;
-        curr_tid = (await db.query("SELECT MAX(transaction_id) FROM TRANSACTIONS;")).rows[0].max;
         try {
             const mongodb = await connectMongo();
             console.log('Connection to mongodb established')

@@ -45,5 +45,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# rust
-target/
+# rust backend
+/rust_backend/target/
