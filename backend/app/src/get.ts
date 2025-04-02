@@ -8,7 +8,6 @@
 // import the required modules and libraries
 import { Db } from 'mongodb';
 import { db, neoDriver } from './index';
-import { Product } from './interfaces';
 
 /**
  * Find and return a user based on a provided username.
@@ -34,13 +33,14 @@ export async function getUser(un: string, mongodb: Db) {
  * @returns A promise, either resolves the query result or rejects.
  */
 export async function getProduct(pi: number, mongodb: Db) {
-  try {
-    return await mongodb.collection('products').findOne({ product_id: pi });
-  } catch (error) {
-    console.log('The product does not exist.');
-    return new Promise((_, reject) => reject());
-  }
+    try {
+        return await mongodb.collection("products").findOne({ product_id: pi });
+    } catch (error) {
+        console.log("The product does not exist.");
+        return new Promise((_, reject) => reject());
+    }
 }
+
 /**
  * Find and return products based on a provided product name.
  * 
@@ -66,8 +66,7 @@ export async function getProductByName(name: string, mongodb: Db) {
  */
 export async function getTransaction(ti: number) {
   try {
-    let q =
-      'SELECT * FROM TRANSACTIONS WHERE transaction_id = ' + String(ti) + ';';
+    let q = 'SELECT * FROM TRANSACTIONS WHERE transaction_id = ' + String(ti) + ';';
     return await db.query(q);
   } catch (error) {
     console.log('The transaction does not exist.');
@@ -78,7 +77,9 @@ export async function getTransaction(ti: number) {
 /**
  * Returns the first n products in the database.
  *
+ *
  * @param n The number of products to get.
+ * @param mongodb The mongo database to query.
  * @param mongodb The mongo database to query.
  */
 export async function getProducts(n: number, mongodb: Db) {
