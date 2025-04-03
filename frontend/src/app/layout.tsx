@@ -37,10 +37,10 @@ export const metadata: Metadata = {
  */
 export default function RootLayout({
     children,
-    rightSide,
+    rightside,
 }: Readonly<{
     children: React.ReactNode;
-    rightSide: React.ReactNode;
+    rightside: React.ReactNode;
 }>) {
     return (
         <html lang="en">
@@ -51,7 +51,7 @@ export default function RootLayout({
                         <div className="flex-1">
                             <LeftSide>{children}</LeftSide>
                         </div>
-                        <div className="flex-1">{rightSide}</div>
+                        <div className="flex-1">{rightside}</div>
                     </div>
                 </SearchProvider>
             </body>
