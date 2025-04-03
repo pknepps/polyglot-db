@@ -16,7 +16,6 @@ import {
   getAllProducts,
   getNeoGraph,
   getPostgresData,
-  getMongoProductSchema,
   getProductByName
 } from './get';
 import { Db } from 'mongodb';
@@ -37,7 +36,6 @@ import {
   randTransaction,
   randUser,
 } from './generators';
-import { get } from 'http';
 
 /**
  * Creates an Express router, which is used to define and handle API routes for the
@@ -46,28 +44,28 @@ import { get } from 'http';
  * @param mongo_db The mongo database to query.
  * @returns The Express Router.
  */
-export function createRouter(mongo_db: Db) {
+export function createRouter() {
   const router = Router();
-  apiGetProduct(router, mongo_db);
-  apiPostProduct(router, mongo_db);
-  apiPutProduct(router, mongo_db);
-  apiGetUser(router, mongo_db);
-  apiPostUser(router, mongo_db);
-  apiPutUser(router, mongo_db);
-  apiPostTransaction(router, mongo_db);
-  apiPostReview(router, mongo_db);
-  apiPostRating(router, mongo_db);
+  apiGetProduct(router);
+  apiPostProduct(router);
+  apiPutProduct(router);
+  apiGetUser(router);
+  apiPostUser(router);
+  apiPutUser(router);
+  apiPostTransaction(router);
+  apiPostReview(router);
+  apiPostRating(router);
   apiGetRecommendation(router);
-  apiGetProducts(router, mongo_db);
-  apiGenerateProducts(router, mongo_db);
-  apiGenerateUsers(router, mongo_db);
-  apiGenerateTransactions(router, mongo_db);
-  apiGenerateReviews(router, mongo_db);
-  apiGetAllProducts(router, mongo_db);
+  apiGetProducts(router);
+  apiGenerateProducts(router);
+  apiGenerateUsers(router);
+  apiGenerateTransactions(router);
+  apiGenerateReviews(router);
+  apiGetAllProducts(router);
   apiGetNeoGraph(router);
   apiGetPostgresData(router);
-  apiGetMongoSchema(router, mongo_db);
-  apiGetProductByName(router, mongo_db);
+  apiGetMongoSchema(router);
+  apiGetProductByName(router);
   return router;
 }
 
@@ -77,11 +75,11 @@ export function createRouter(mongo_db: Db) {
  * @param router The Express router to add the request to.
  * @param mongo_db The mongo database to query.
  */
-function apiGetProduct(router: Router, mongo_db: Db) {
+function apiGetProduct(router: Router) {
   router.get('/product/:id', (req: Request, res: Response) => {
     const id = Number(req.params.id);
     console.log(`Received GET request for product ${id}`);
-    getProduct(id, mongo_db)
+    getProduct(id)
       .then((product) => res.json(product))
       .catch((_) => res.status(404).send('Not Found.\n'));
   });
@@ -92,13 +90,13 @@ function apiGetProduct(router: Router, mongo_db: Db) {
  *
  * @param router The Express router to add the request to.
  */
-function apiGetProductByName(router: Router, mongo_db: Db) {
+function apiGetProductByName(router: Router) {
   router.get('/product/name/:name', async (req: Request, res: Response) => {
       const encodedName = req.params.name;
       const name = decodeURIComponent(encodedName); // decode the name
       console.log(`Received GET request for products with name "${name}"`);
       try {
-          const product = await getProductByName(name, mongo_db);
+          const product = await getProductByName(name);
           if (product) {
               res.json(product);
           } else {
@@ -134,10 +132,11 @@ function apiGetNeoGraph(router: Router) {
  *
  * @param router The Express router to add the request to.
  */
-function apiGetMongoSchema(router: Router, mongoDb: Db) {
+function apiGetMongoSchema(router: Router) {
+  
   router.get('/mongodb/schema', async (req: Request, res: Response) => {
     try {
-      const schema = await getMongoProductSchema(mongoDb);
+      const schema = await getAllProducts();
       if (schema === null) {
         throw new Error(`Could not fetch schema. Schema is null.`);
       }
@@ -174,11 +173,11 @@ function apiGetPostgresData(router: Router) {
  * @param router The Express Router to add the request to.
  * @param mongo_db The mongo database to query.
  */
-function apiGetUser(router: Router, mongo_db: Db) {
+function apiGetUser(router: Router) {
   router.get('/user/:username', (req: Request, res: Response) => {
     const username = String(req.params.username);
     console.log(`Received GET request for user ${username}`);
-    getUser(username, mongo_db)
+    getUser(username)
       .then((user) => res.json(user))
       .catch((_) => res.status(404).send('Not Found.\n.'));
   });
@@ -190,7 +189,7 @@ function apiGetUser(router: Router, mongo_db: Db) {
  * @param router The router to add the request to.
  * @param mongo_db The mongo database to query.
  */
-function apiPostProduct(router: Router, mongo_db: Db) {
+function apiPostProduct(router: Router) {
   router.post('/product/', (req: Request, res: Response) => {
     try {
       const product_data = req.body;
@@ -210,7 +209,7 @@ function apiPostProduct(router: Router, mongo_db: Db) {
         price,
       };
 
-      newProduct(record, product, mongo_db);
+      newProduct(record, product);
       res.status(200).send('Product added.\n');
     } catch (e) {
       console.log(e);
@@ -225,14 +224,14 @@ function apiPostProduct(router: Router, mongo_db: Db) {
  * @param router The router to add the request to.
  * @param mongo_db The mongo database to query.
  */
-function apiPutProduct(router: Router, mongo_db: Db) {
+function apiPutProduct(router: Router) {
   router.put('/product/:id', (req: Request, res: Response) => {
     try {
       const product_data = req.body;
       const id = Number(req.params.id);
       console.log(`Received PUT request for products: ${product_data}`);
       product_data['product_id'] = id;
-      updateProduct(product_data, mongo_db);
+      updateProduct(product_data);
       res.status(200).send('Product updated.\n');
     } catch (e) {
       console.log(e);
@@ -247,7 +246,7 @@ function apiPutProduct(router: Router, mongo_db: Db) {
  * @param router The router to add the request to.
  * @param mongo_db The mongo database to query.
  */
-function apiPostUser(router: Router, mongo_db: Db) {
+function apiPostUser(router: Router) {
   router.post('/user/', (req: Request, res: Response) => {
     try {
       const { username, first, last } = req.body;
@@ -267,7 +266,7 @@ function apiPostUser(router: Router, mongo_db: Db) {
         firstName: first,
         lastName: last,
       };
-      newUser(userRecord, user, mongo_db);
+      newUser(userRecord, user);
       res.status(200).send('User added.\n');
     } catch (e) {
       console.log(e);
@@ -282,7 +281,7 @@ function apiPostUser(router: Router, mongo_db: Db) {
  * @param router The router to add the request to.
  * @param mongo_db The mongo database to query.
  */
-function apiPostTransaction(router: Router, mongo_db: Db) {
+function apiPostTransaction(router: Router) {
   router.post('/transaction/', (req: Request, res: Response) => {
     try {
       const { username, productId, cardNum, address, city, state, zip } =
@@ -302,7 +301,7 @@ function apiPostTransaction(router: Router, mongo_db: Db) {
         zip: Number(zip),
       };
 
-      newTransaction(transaction, mongo_db);
+      newTransaction(transaction);
       res.status(200).send('Transaction added\n');
     } catch (e) {
       console.log(e);
@@ -317,12 +316,12 @@ function apiPostTransaction(router: Router, mongo_db: Db) {
  * @param router The router to add the request to.
  * @param mongo_db The mongo database to query.
  */
-function apiPostReview(router: Router, mongo_db: Db) {
+function apiPostReview(router: Router) {
   router.post('/review/', (req: Request, res: Response) => {
     try {
       const data = req.body;
       console.log(`Received POST request for review: ${data}`);
-      addReview(data, mongo_db);
+      addReview(data);
       res.status(200).send('Review added\n');
     } catch (e) {
       console.log(e);
@@ -337,12 +336,12 @@ function apiPostReview(router: Router, mongo_db: Db) {
  * @param router The router to add the request to.
  * @param mongo_db The mongo database to query.
  */
-function apiPostRating(router: Router, mongo_db: Db) {
+function apiPostRating(router: Router) {
   router.post('/rating/', (req: Request, res: Response) => {
     try {
       const data = req.body;
       console.log(`Received POST request for rating ${data}`);
-      addRating(data, mongo_db);
+      addRating(data);
       res.status(200).send('Rating added\n');
     } catch (e) {
       console.log(e);
@@ -374,14 +373,14 @@ function apiGetRecommendation(router: Router) {
  * @param router The router to add the request to.
  * @param mongo_db The mongo database to query.
  */
-function apiPutUser(router: Router, mongo_db: Db) {
+function apiPutUser(router: Router) {
   router.put('/user/:username', (req: Request, res: Response) => {
     try {
       const user_data = req.body;
       const username = String(req.params.username);
       console.log(`Received PUT request for user: ${user_data}`);
       user_data['username'] = username;
-      updateUser(user_data, mongo_db);
+      updateUser(user_data);
       res.status(200).send('User updated.\n');
     } catch (e) {
       console.log(e);
@@ -396,9 +395,9 @@ function apiPutUser(router: Router, mongo_db: Db) {
  * @param router The Express router to add the request to.
  * @param mongo_db The mongo database to query.
  */
-function apiGetProducts(router: Router, mongo_db: Db) {
+function apiGetProducts(router: Router) {
   router.get('/products/:number', (req: Request, res: Response) => {
-    getProducts(parseInt(req.params.number), mongo_db)
+    getProducts(parseInt(req.params.number))
       .then((products) => res.json(products))
       .catch((_) => res.status(404).send('Not Found\n'));
   });
@@ -410,10 +409,13 @@ function apiGetProducts(router: Router, mongo_db: Db) {
  * @param router The Express router to add the request to.
  * @param mongo_db The mongo database to query.
  */
-function apiGetAllProducts(router: Router, mongo_db: Db) {
+function apiGetAllProducts(router: Router) {
   router.get('/products/all', (res: Response) => {
-    getAllProducts(mongo_db)
-      .then((products) => res.json(products))
+    getAllProducts()
+      .then((products) => {
+        console.log(res.json(products))
+        res.json(products)
+  })
       .catch((_) => res.status(404).send('Not Found\n'));
   });
 }
@@ -424,14 +426,14 @@ function apiGetAllProducts(router: Router, mongo_db: Db) {
  * @param router The router to add the request to.
  * @param mongo_db The mongo database to query.
  */
-function apiGenerateUsers(router: Router, mongo_db: Db) {
+function apiGenerateUsers(router: Router) {
     router.post("/generate/users", async (req: Request, res: Response) => {
         try {
             const { quantity } = req.body;
             const newUserPromises = [];
             for (let i = 0; i < quantity; i++) {
                 let [userRecord, user] = randUser();
-                newUserPromises.push(newUser(userRecord, user, mongo_db));
+                newUserPromises.push(newUser(userRecord, user));
             }
             await Promise.all(newUserPromises);
             const successMessage = `Inserted ${quantity} random users into the USERS table.`;
@@ -450,14 +452,14 @@ function apiGenerateUsers(router: Router, mongo_db: Db) {
  * @param router The router to add the request to.
  * @param mongo_db The mongo database to query.
  */
-function apiGenerateProducts(router: Router, mongo_db: Db) {
+function apiGenerateProducts(router: Router) {
     router.post("/generate/products", async (req: Request, res: Response) => {
         try {
             const { quantity } = req.body;
             const newProductPromises = [];
             for (let i = 0; i < quantity; i++) {
                 let [productRecord, product] = randProduct();
-                newProductPromises.push(newProduct(productRecord, product, mongo_db));
+                newProductPromises.push(newProduct(productRecord, product));
             }
             await Promise.all(newProductPromises);
             const successMessage = `Inserted ${quantity} random products into the PRODUCTS table.`;
@@ -476,12 +478,12 @@ function apiGenerateProducts(router: Router, mongo_db: Db) {
  * @param router The router to add the request to.
  * @param mongo_db The mongo database to query.
  */
-function apiGenerateTransactions(router: Router, mongo_db: Db) {
+function apiGenerateTransactions(router: Router) {
     router.post("/generate/transactions", async (req: Request, res: Response) => {
         const { quantity } = req.body;
         await randTransaction(quantity)
             .then(async (result) => {
-                await Promise.all(result.map((transaction) => newTransaction(transaction, mongo_db)));
+                await Promise.all(result.map((transaction) => newTransaction(transaction)));
                 const successMessage = `Inserted ${quantity} random transactions into the TRANSACTIONS table.`;
                 console.log(successMessage);
                 res.status(200).send(successMessage);
@@ -500,18 +502,18 @@ function apiGenerateTransactions(router: Router, mongo_db: Db) {
  * @param router The router to add the request to.
  * @param mongo_db The mongo database to query.
  */
-function apiGenerateReviews(router: Router, mongo_db: Db) {
+function apiGenerateReviews(router: Router) {
     router.post("/generate/reviews", async (req: Request, res: Response) => {
         const { quantity } = req.body;
         const ratingsPromise = randRatings(quantity)
             .then(async (result) => {
-                await Promise.all(result.map((rating) => addRating(rating, mongo_db)));
+                await Promise.all(result.map((rating) => addRating(rating)));
                 console.log(`Added ${quantity} random ratings to users and products.`);
             })
             .catch((e) => console.log("An exception has occurred while updating users and products: ", e));
         const reviewPromise = randReviews(quantity)
             .then(async (result) => {
-                await Promise.all(result.map((review) => addReview(review, mongo_db)));
+                await Promise.all(result.map((review) => addReview(review)));
                 console.log(`Added ${quantity} random reviews to users and products.`);
             })
             .catch((e) => {

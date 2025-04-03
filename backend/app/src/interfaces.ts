@@ -7,6 +7,8 @@
  * @version 10/28/2024
  */
 
+import { Document, WithId } from "mongodb";
+
 /**
  * An interface to model a User Record.
  */
@@ -64,6 +66,8 @@ export interface Product {
     ratings: ProductRating[];
     reviews: ProductReview[];
 }
+
+export interface ProductObject extends WithId<Document>, Product{}
 
 export interface ProductRating {
     username: string;

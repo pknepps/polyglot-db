@@ -1,7 +1,5 @@
-import { redis } from ".";
-import { Pool } from "pg";
+import { connectMongo, redis } from ".";
 import { Db } from "mongodb";
-import { Driver } from "neo4j-driver";
 
 /**
  * A frequency map of each type of database which holds each shard address and
@@ -21,6 +19,12 @@ export const mongoConnections: Map<string, Db> = new Map();
 // TODO: hardcoded addresses, we need to find a way to add them.
 dbMap.mongoDB.set("pknepps.net", 0);
 
+export async function makeConnections() {
+    for (let [address, _] of dbMap.mongoDB) {
+        mongoConnections.set(address, await connectMongo(address));
+    }
+}
+
 /**
  * Helper method which calculates the best existing shard to send new data to.
  * @param db The name of the field in the DBMap interface to search through
@@ -33,6 +37,7 @@ function getAddressToSend(): string {
             min = entry;
         }
     }
+    min[1]++;
     return min[0];
 }
 
@@ -51,7 +56,7 @@ export function getMongoAddressToSend(): string {
  * @param db The database name which the item is loated.
  * @returns The address of the host which holds the data.
  */
-async function getAddress(id: string, db: string): Promise<string | null> {
+async function getAddress(id: string): Promise<string | null> {
     return (await redis).get(id);
 }
 
@@ -62,5 +67,9 @@ async function getAddress(id: string, db: string): Promise<string | null> {
  * @returns The address of the host which holds the data.
  */
 export async function getMongoAddress(id: string): Promise<string | null> {
-    return getAddress(id, "mongoDB");
+    return getAddress(id);
+}
+
+export async function setMongoAddress(id: string, address: string) {
+    await redis.set(id, address);
 }
