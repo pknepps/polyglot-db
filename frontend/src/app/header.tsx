@@ -12,7 +12,8 @@ import "./header.css";
 import { getUser } from "@/app/request";
 import { User } from "../../../backend/app/src/interfaces";
 import { Modal } from "./components";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { SearchContext } from "./searchContext";
 
 /**
  * Creates the header component for the UI.
@@ -21,12 +22,18 @@ import { redirect } from "next/navigation";
  */
 export function Header() {
     // intialize the use states
+    const router = useRouter();
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isUserInfoModalOpen, setIsUserInfoModalOpen] = useState(false);
     const [username, setUsername] = useState("");
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [error, setError] = useState("");
     const [searchInput, setSearchInput] = useState("");
+    const searchContext = useContext(SearchContext);
+    if (!searchContext) {
+        throw new Error("SearchContext is not provided. Ensure it is wrapped in a provider.");
+    }
+    const { setSearchQuery } = searchContext;
 
     // open the login modal
     const openLoginModal = () => {
@@ -44,11 +51,6 @@ export function Header() {
     // open the user info modal
     const openUserInfoModal = () => {
         setIsUserInfoModalOpen(true);
-    };
-
-    // close the user info modal
-    const closeUserInfoModal = () => {
-        setIsUserInfoModalOpen(false);
     };
 
     // this is what happens when the user tries to sign in
@@ -76,14 +78,23 @@ export function Header() {
 
     // sets the search query when the user types in the search bar
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchInput(e.target.value);
+        const value = e.target.value;
+        setSearchInput(value);
+        setSearchQuery(value);
+    };
+
+    // this is what happens when the user clicks the home button
+    const handleHomeClick = () => {
+        setSearchQuery(""); 
+        setSearchInput("");
+        router.push("/"); 
     };
 
     // the html for the header
     return (
         <header className="bg-sky-600 flex flex-row justify-between align-middle py-2 px-4">
             <div className="header-buttons">
-                <button className="btn" onClick={() => redirect("/") /* TODO: these should probably be links */}>
+                <button className="btn" onClick={handleHomeClick}>
                     Home
                 </button>
                 {currentUser ? (

@@ -1,16 +1,29 @@
 "use client";
 
+// needed imports
 import "./page.module.css";
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useEffect, useState, useContext } from "react";
 import { getProducts } from "./request";
 import { Product } from "../../../backend/app/src/interfaces";
 import Link from "next/link";
 import { ProductView } from "./components";
+import { SearchContext } from "./searchContext";
 
-export default function AllProducts({ searchQuery }: { searchQuery: string }): ReactElement {
-    // keeps track of the products
+/**
+ * Used to display all products in the database.
+ * 
+ * @returns The component that displays all products.
+ */
+export default function AllProducts(): ReactElement {
+    const searchContext = useContext(SearchContext);
+
+    if (!searchContext) {
+        throw new Error("SearchContext is not provided. Make sure to wrap the component with SearchContext.Provider.");
+    }
+
+    const { searchQuery } = searchContext;
     const [products, setProducts] = useState<Product[]>([]);
-    // filter the products based on the search query
+
     const filteredProducts = searchQuery
         ? products.filter(
               (product) =>
@@ -19,7 +32,6 @@ export default function AllProducts({ searchQuery }: { searchQuery: string }): R
           )
         : products;
 
-    // get the products
     useEffect(() => {
         async function fetchProducts() {
             try {
@@ -34,17 +46,13 @@ export default function AllProducts({ searchQuery }: { searchQuery: string }): R
 
     return (
         <>
-            <h3 className="text-black text-4xl font-bold text-center mb-8">Products</h3>
-            <ul className="left-side-list">
-                {filteredProducts.length === 0 ? (
-                    <li className="text-black">No Products Found. Try another search!</li>
-                ) : (
-                    filteredProducts.map((product) => (
-                        <Link href={`product/${product.product_id}`} key={product.product_id}>
-                            <ProductView productDetails={product} style="preview" recommendations={[]}></ProductView>
-                        </Link>
-                    ))
-                )}
+            <h3 className="products-title">Products</h3>
+            <ul>
+                {filteredProducts.map((product) => (
+                    <Link href={`product/${product.product_id}`} key={product.product_id}>
+                        <ProductView productDetails={product} style="preview" recommendations={[]} />
+                    </Link>
+                ))}
             </ul>
         </>
     );

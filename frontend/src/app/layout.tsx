@@ -11,6 +11,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Header } from "./header";
 import { LeftSide } from "./left_side_pane";
+import { SearchProvider } from "./searchContext";
 
 // define the fonts used
 const geistSans = localFont({
@@ -44,13 +45,15 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable}`}>
-                <Header />
-                <div className="flex h-full">
-                    <div className="flex-1">
-                        <LeftSide>{children}</LeftSide>
+                <SearchProvider>
+                    <Header />
+                    <div className="flex h-full">
+                        <div className="flex-1">
+                            <LeftSide>{children}</LeftSide>
+                        </div>
+                        <div className="flex-1">{rightSide}</div>
                     </div>
-                    <div className="flex-1">{rightSide}</div>
-                </div>
+                </SearchProvider>
             </body>
         </html>
     );
