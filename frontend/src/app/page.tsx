@@ -47,13 +47,17 @@ export default function AllProducts(): ReactElement {
     return (
         <>
             <h3 className="products-title">Products</h3>
-            <ul>
-                {filteredProducts.map((product) => (
-                    <Link href={`product/${product.product_id}`} key={product.product_id}>
-                        <ProductView productDetails={product} style="preview" recommendations={[]} />
-                    </Link>
-                ))}
-            </ul>
+            {filteredProducts.length > 0 ? (
+                <ul>
+                    {filteredProducts.map((product) => (
+                        <Link href={`product/${product.product_id}`} key={product.product_id}>
+                            <ProductView productDetails={product} style="preview" recommendations={[]} />
+                        </Link>
+                    ))}
+                </ul>
+            ) : (
+                <p>No valid products available.</p>
+            )}
         </>
     );
 }
