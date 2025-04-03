@@ -7,7 +7,7 @@
 
 // these are the required imports
 import { User, Product } from "./interfaces";
-import * as mongodb from "mongodb";
+import { getMongoAddress, mongoConnections } from "./shard";
 
 /**
  * Updates a property in user.
@@ -15,7 +15,8 @@ import * as mongodb from "mongodb";
  * @param props A partial user with only the properties to update and the username.
  * @param db The mongo database in which the user to update is located.
  */
-export function updateUser(props: Partial<User> & Pick<User, "username">, db: mongodb.Db) {
+export async function updateUser(props: Partial<User> & Pick<User, "username">) {
+    const db = mongoConnections.get((await getMongoAddress("u" + props.username))!);
     // @ts-ignore
     db.collection("users")
         .updateOne({ username: props.username }, { $set: props })
@@ -29,7 +30,8 @@ export function updateUser(props: Partial<User> & Pick<User, "username">, db: mo
  * @param props A partial product with only the properties to update and the product_id.
  * @param db The mongo database in which the product to update is located.
  */
-export function updateProduct(props: Partial<Product> & Pick<Product, "product_id">, db: mongodb.Db) {
+export async function updateProduct(props: Partial<Product> & Pick<Product, "product_id">) {
+    const db = mongoConnections.get((await getMongoAddress("p" + props.product_id))!);
     // @ts-ignore
     db.collection("products")
         .updateOne({ product_id: props.product_id }, { $set: props })
@@ -43,8 +45,9 @@ export function updateProduct(props: Partial<Product> & Pick<Product, "product_i
  * @param review The review to add. Includes the username, product, and the string representing the review.
  * @param db The mongo database to update.
  */
-export async function addReview(review: { username: string; product_id: number; review: string }, db: mongodb.Db) {
-    const addUserReviews = db
+export async function addReview(review: { username: string; product_id: number; review: string }) {
+    let db = mongoConnections.get((await getMongoAddress("u" + review.username))!)
+    const addUserReviews = db!
         .collection("users")
         .updateOne(
             { username: review.username },
@@ -53,7 +56,8 @@ export async function addReview(review: { username: string; product_id: number; 
         )
         .then((_) => console.log("Successfully added review to user: ", review.username))
         .catch((error) => console.log("Failed to add review to user: ", review.username, "\n", error));
-    const addProductReviews = db
+    db = mongoConnections.get((await getMongoAddress("p" + review.product_id))!)
+    const addProductReviews = db!
         .collection("products")
         .updateOne(
             { product_id: review.product_id },
@@ -71,8 +75,9 @@ export async function addReview(review: { username: string; product_id: number; 
  * @param rating The rating to add. Includes the username, product, and the number out of 5 representing the rating.
  * @param db The mongo database to update.
  */
-export async function addRating(rating: { username: string; product_id: number; rating: number }, db: mongodb.Db) {
-    const addRatingsToUsers = db
+export async function addRating(rating: { username: string; product_id: number; rating: number }) {
+    let db = mongoConnections.get((await getMongoAddress("u" + rating.username))!)
+    const addRatingsToUsers = db!
         .collection("users")
         .updateOne(
             { username: rating.username },
@@ -81,7 +86,8 @@ export async function addRating(rating: { username: string; product_id: number; 
         )
         .then((_) => console.log("Successfully added rating to user: ", rating.username))
         .catch((error) => console.log("Failed to add rating to user: ", rating.username, "\n", error));
-    const addRatingsToProducts = db
+    db = mongoConnections.get((await getMongoAddress("p" + rating.product_id))!)
+    const addRatingsToProducts = db!
         .collection("products")
         .updateOne(
             { product_id: rating.product_id },

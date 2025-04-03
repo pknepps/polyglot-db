@@ -21,6 +21,7 @@ import {recommend_from_product} from "./recommend";
 import express from "express";
 import {createRouter} from "./api";
 import cors from "cors";
+import { makeConnections } from "./shard";
 
 // this is used to interact with the user on the command line
 const rl = readline.createInterface({
@@ -59,13 +60,13 @@ export const neoDriver = neo4j.driver(
  * 
  * @returns If connection is successful then returns the mongodb database.
  */
-async function connectMongo(): Promise<Db> {
+export async function connectMongo(address: string): Promise<Db> {
     let mongodb: Db | null = null;
-    try{
+    try {
         // gets the mongodb password from a file
 
         // the parts needed to create mongodb connection
-        const mong_uri: string = "mongodb://mongo:" + mong_pass + "@pknepps.net/?authSource=admin";
+        const mong_uri: string = "mongodb://mongo:" + mong_pass + `@${address}/?authSource=admin`;
         const dbName = "polyglots-db";
 
         // create a new mongo client
@@ -73,17 +74,17 @@ async function connectMongo(): Promise<Db> {
 
         // console.log(client);
         // connect to the client
-        try{
+        try {
             await client.connect();
-        } catch(e){
-            console.log(("There was an error making the connection to mongodb: "), e);
+        } catch (e) {
+            console.log("There was an error making the connection to mongodb: ", e);
         }
 
         // return the desired database
         mongodb = client.db(dbName);
 
-    // catch and handle any errors trying to connect to mongo
-    } catch(err){
+        // catch and handle any errors trying to connect to mongo
+    } catch (err) {
         console.log("Error connecting to MongoDb", err);
     }
     return new Promise((resolve, reject) => {
@@ -135,7 +136,7 @@ async function caseOne(mongo_db: Db) {
         const user_record: UserRecord = {
             username: username, firstName: firstName, lastName: lastName
         };
-        newUser(user_record, user, mongo_db);
+        newUser(user_record, user);
     } catch(error){
         console.log("Error inserting user: ", error);
     }
@@ -180,7 +181,7 @@ async function caseTwo(mongo_db: Db) {
             name: name,
         };
         // pass the products off
-        newProduct(product_record, product, mongo_db);
+        newProduct(product_record, product);
     } catch(error){
         console.log("Error inserting product: ", error);
     }
@@ -226,7 +227,7 @@ async function caseThree(mongo_db: Db) {
 
                 // Insert the new transaction
                 try{
-                    newTransaction(transaction, mongo_db);
+                    newTransaction(transaction);
                 } catch(error){
                     console.log("Error inserting transaction: ", error);
                 }
@@ -255,8 +256,8 @@ async function caseFour(mongo_db: Db) {
         const rating: number = Number(await rl.question("Enter a rating (1-5): "));
         const review = await rl.question("Enter a review: ");
         const rateview = {username, product_id, rating, review};
-        addRating(rateview, mongo_db);
-        addReview(rateview, mongo_db);
+        addRating(rateview);
+        addReview(rateview);
     } catch(e) {
         console.log("Exception updating ratings and reviews: ", e)
     }
@@ -279,21 +280,21 @@ async function caseFive(mongo_db: Db) {
             case "users":
                 for (let i = 0; i < quantity; i++) {
                     let [userRecord, user] = randUser();
-                    newUser(userRecord, user, mongo_db);
+                    newUser(userRecord, user);
                 }
                 console.log(`Inserted ${quantity} random users into the USERS table.`);
                 break;
             case "products":
                 for (let i = 0; i < quantity; i++) {
                     let [productRecord, product] = randProduct();
-                    newProduct(productRecord, product, mongo_db);
+                    newProduct(productRecord, product);
                 }
                 console.log(`Inserted ${quantity} random products into the PRODUCTS table.`);
                 break;
             case "transactions":
                 randTransaction(quantity)
                     .then(result => {
-                        result.map(transaction => newTransaction(transaction, mongo_db));
+                        result.map(transaction => newTransaction(transaction));
                         console.log(
                             `Inserted ${quantity} random transactions into the TRANSACTIONS table.`
                         );
@@ -306,7 +307,7 @@ async function caseFive(mongo_db: Db) {
             case "reviews":
                 randRatings(quantity)
                     .then(result => {
-                        result.map(rating => addRating(rating, mongo_db));
+                        result.map(rating => addRating(rating));
                         console.log(`Added ${quantity} random ratings to users and products.`)
                     })
                     .catch(e => console.log(
@@ -314,7 +315,7 @@ async function caseFive(mongo_db: Db) {
                     ));
                     randReviews(quantity)
                     .then(result => {
-                        result.map(review => addReview(review, mongo_db));
+                        result.map(review => addReview(review));
                         console.log(`Added ${quantity} random reviews to users and products.`)
                     })
                     .catch(e => console.log(
@@ -418,7 +419,7 @@ async function start() {
     redis = await connectRedis();
     try {
         try {
-            const mongodb = await connectMongo();
+            await makeConnections();
             console.log('Connection to mongodb established')
             try {
                 const serverInfo = await neoDriver.getServerInfo()
@@ -432,7 +433,7 @@ async function start() {
             const port = process.env.PORT || 8000;
             app.use(cors());
             app.use(express.json());
-            app.use("/api/", createRouter(mongodb));
+            app.use("/api/", createRouter());
             app.listen(port, () => {
                 console.log(`Server running at http://localhost:${port}`);
             });

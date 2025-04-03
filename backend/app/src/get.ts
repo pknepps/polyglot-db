@@ -8,6 +8,10 @@
 // import the required modules and libraries
 import { Db } from 'mongodb';
 import { db, neoDriver } from './index';
+import { getMongoAddress, mongoConnections } from "./shard";
+import { redis } from "./index"
+import { Product, ProductObject } from "./interfaces";
+import { pullIntoCache } from "./cache";
 
 /**
  * Find and return a user based on a provided username.
@@ -16,13 +20,15 @@ import { db, neoDriver } from './index';
  * @param mongodb The mongoDB that we are looking in.
  * @returns A promise, either resolves the query result or rejects.
  */
-export async function getUser(un: string, mongodb: Db) {
-  try {
-    return await mongodb.collection('users').findOne({ username: un });
-  } catch (error) {
-    console.log('The user does not exist.');
-    return new Promise((_, reject) => reject());
-  }
+export async function getUser(un: string) {
+    try {
+        const address = await getMongoAddress("u" + un);
+        const mongodb: Db = await (mongoConnections.get(address!)!)!;
+        return await mongodb.collection("users").findOne({ username: un });
+    } catch (error) {
+        console.log("The user does not exist.");
+        return new Promise((_, reject) => reject());
+    }
 }
 
 /**
@@ -32,9 +38,17 @@ export async function getUser(un: string, mongodb: Db) {
  * @param mongodb The mongoDB that we are looking in.
  * @returns A promise, either resolves the query result or rejects.
  */
-export async function getProduct(pi: number, mongodb: Db) {
+export async function getProduct(pi: number) {
     try {
-        return await mongodb.collection("products").findOne({ product_id: pi });
+        let product = await redis.get("" + pi);
+        if (product) {
+            return JSON.parse(product);
+        }
+        const address = (await getMongoAddress("p" + pi))!;
+        const mongodb: Db = (await mongoConnections.get(address))!;
+        pullIntoCache(pi, mongodb);
+        return await mongodb.collection("products")
+          .findOne({ product_id: pi }) as ProductObject as Product;
     } catch (error) {
         console.log("The product does not exist.");
         return new Promise((_, reject) => reject());
@@ -48,10 +62,15 @@ export async function getProduct(pi: number, mongodb: Db) {
  * @param mongodb The mongoDB that we are looking in.
  * @returns A promise, either resolves the query result or rejects.
  */
-export async function getProductByName(name: string, mongodb: Db) {
+export async function getProductByName(name: string) {
   try {
     const regex = new RegExp(name, 'i'); // case-insensitive regex
-    return await mongodb.collection('products').find({ name: regex }).toArray();
+    const products: Product[] = [];
+    for (let [_, mongodb] of mongoConnections) {
+      const res = await mongodb.collection('products').find({ name: regex }).toArray()
+      products.concat(res as ProductObject[]);
+    }
+    return products
   } catch (error) {
     console.log('The product does not exist.');
     return new Promise((_, reject) => reject());
@@ -82,9 +101,10 @@ export async function getTransaction(ti: number) {
  * @param mongodb The mongo database to query.
  * @param mongodb The mongo database to query.
  */
-export async function getProducts(n: number, mongodb: Db) {
+export async function getProducts(n: number) {
   try {
-    return mongodb.collection('products').find({}).limit(n).toArray();
+    const mongodb: Db = mongoConnections.get("pknepps.net")!;
+    return mongodb?.collection('products').find({}).limit(n).toArray();
   } catch (e) {
     console.log(`There was a problem querying products from MongoDB, ${e}`);
     return new Promise((_, reject) => reject());
@@ -97,9 +117,13 @@ export async function getProducts(n: number, mongodb: Db) {
  * @param mongodb The mongo database to query
  * @returns The count of documents in the products collection.
  */
-export async function getAllProducts(mongodb: Db) {
+export async function getAllProducts(): Promise<Product[]> {
   try {
-    return mongodb.collection('products').find({}).toArray();
+    const res: Product[] = []
+    for (let [_, mongodb] of mongoConnections) {
+      res.concat(await mongodb?.collection('products').find({}).toArray() as ProductObject[]);
+    }
+    return res;
   } catch (e) {
     console.log(`There was a problem querying products from MongoDB, ${e}`);
     return new Promise((_, reject) => reject());
@@ -181,9 +205,6 @@ export async function getNeoGraph(pid?: number) {
       const p = record.get('p');
       const r = record.get('r');
 
-      console.log('This is the related node: ', p);
-      console.log('This is the product: ', n);
-
       if (!nodeSet.has(n.identity.low)) {
         const label = n.labels.includes('Product')
           ? n.properties.name
@@ -206,9 +227,6 @@ export async function getNeoGraph(pid?: number) {
         label: r.type,
       });
 
-      console.log('Product Node:', n.properties);
-      console.log('Related Node:', p.properties);
-      console.log('Relationship:', r.type);
     });
 
     return { nodes, edges };
@@ -216,8 +234,4 @@ export async function getNeoGraph(pid?: number) {
     console.log(`There was a problem querying the Neo4j graph, ${e}`);
     return new Promise((_, reject) => reject());
   }
-}
-
-export async function getMongoProductSchema(mongoDb: Db) {
-  return mongoDb.collection('products').find({}).toArray();
 }

@@ -6,10 +6,9 @@
  */
 
 // these are the required imports
-import { EagerResult } from "neo4j-driver";
 import { neoDriver, sanitize, db, redis } from "./index";
 import { UserRecord, ProductRecord, TransactionRecord, User, Product } from "./interfaces";
-import { Db } from "mongodb";
+import { setMongoAddress, getMongoAddress, getMongoAddressToSend, mongoConnections } from "./shard";
 
 /**
  * This is responsible for creating a new user.
@@ -18,11 +17,14 @@ import { Db } from "mongodb";
  * @param u The User object.
  * @param mongo_db The mongodb database.
  */
-export async function newUser(ur: UserRecord, u: User, mongo_db: Db) {
+export async function newUser(ur: UserRecord, u: User) {
     // Sanitization
     ur.firstName = sanitize(ur.firstName);
     ur.lastName = sanitize(ur.lastName);
     ur.username = sanitize(ur.username);
+    let mongoAddress = getMongoAddressToSend();
+    let mongo_db = mongoConnections.get(mongoAddress)!;
+
     if (ur.username.length > 50) {
         throw new Error("Username has too many characters");
     }
@@ -53,6 +55,7 @@ export async function newUser(ur: UserRecord, u: User, mongo_db: Db) {
         .then(async (existingUser) => {
             if (existingUser === null) {
                 await mongo_db.collection("users").insertOne(u);
+                await setMongoAddress("u" + ur.username, mongoAddress);
                 return console.log(`Inserted ${u.username} into MongoDB users collection.`);
             } else {
                 throw new Error(`The username exists within the mongo collection, try another username.`);
@@ -77,11 +80,12 @@ export async function newUser(ur: UserRecord, u: User, mongo_db: Db) {
  * @param p The Product object.
  * @param mongo_db The mongodb database.
  */
-export async function newProduct(pr: ProductRecord, p: Product, mongo_db: Db) {
+export async function newProduct(pr: ProductRecord, p: Product) {
     if (pr.name.length > 255) {
         throw new Error("Product name has too many characters.");
     }
-
+    let mongoAddress = getMongoAddressToSend()
+    let mongo_db = mongoConnections.get(mongoAddress)!;
     // increment the current pid
     const curr_pid = await redis.incr("curr_product_id");
     pr.productId = curr_pid;
@@ -105,6 +109,7 @@ export async function newProduct(pr: ProductRecord, p: Product, mongo_db: Db) {
         .then(async (existingProduct) => {
             if (existingProduct === null) {
                 await mongo_db.collection("products").insertOne(p);
+                await setMongoAddress("p" + pr.productId, mongoAddress);
                 return console.log(`Inserted ${p.product_id} into MongoDB products collection.`);
             } else {
                 throw new Error(`The product exists within the mongo collection, try another product_id.`);
@@ -137,7 +142,7 @@ export async function newProduct(pr: ProductRecord, p: Product, mongo_db: Db) {
  * @param mongo_db The mongo database to query.
  * @returns A Promise that is either resolved or rejected depending on the outcome of the query.
  */
-export async function newTransaction(t: TransactionRecord, mongo_db: Db) {
+export async function newTransaction(t: TransactionRecord) {
     // increment the transaction id
     const curr_tid = await redis.incr("curr_transaction_id");
     t.transactionId = curr_tid;
@@ -163,7 +168,7 @@ export async function newTransaction(t: TransactionRecord, mongo_db: Db) {
         // if the transaction is able to be updated successfully then we need to update the
         // corresponding user's information
         // the address object and payment object
-        .then(() => {
+        .then(async () => {
             const address = {
                 address: t.address,
                 city: t.city,
@@ -171,9 +176,13 @@ export async function newTransaction(t: TransactionRecord, mongo_db: Db) {
                 zip: t.zip,
             };
             const payment = { cardnum: t.cardNum };
-
+            const mongo_address = await getMongoAddress("u" + t.username)
+            if (mongo_address == null) {
+                throw "Address does not exist for user: " + t.username
+            }
+            const mongo_db = mongoConnections.get(mongo_address);
             // access and update the users when a transaction is made
-            return mongo_db
+            return mongo_db!
                 .collection("users")
                 .updateOne(
                     { username: t.username },

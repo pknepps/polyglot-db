@@ -127,14 +127,20 @@ export async function getPostgresData(
  *
  * @returns  All products.
  */
-export async function getProducts(): Promise<Product[]> {
+export function getProducts(): Promise<Product[]> {
   const request: RequestInfo = new Request(backendAddress + 'products/all', {
     method: 'GET',
     headers: GETHeaders,
   });
   return fetch(request)
-    .then((response) => response.json())
-    .then((response) => response as Product[]);
+    .then((response) => {
+      console.log(response); 
+      return response.json();
+    })
+    .then((response) => {
+      console.log(response); 
+      return response as Product[];
+    })
 }
 
 /**
