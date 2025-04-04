@@ -206,23 +206,6 @@ export function RedisDataTable({data}: {data: RedisQueryData | null}) {
     }
     return (
         <div className="table-container">
-            <h2><b>Cached Data</b></h2>
-            <table className="postgres-data-table">
-                <thead>
-                    <tr>
-                        <th>ProductID</th>
-                        <th>Product</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {data.cachedData.map(([id, product]) => (
-                        <tr key={id}>
-                            <td>{id}</td>
-                            <td>{product}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
             {data.shard == null ? <div></div> : <div>
             <h2><b>Current Shard:</b></h2>
             <table className="postgres-data-table">
@@ -240,6 +223,23 @@ export function RedisDataTable({data}: {data: RedisQueryData | null}) {
                 </tbody>
             </table>
             </div>}   
+            <h2><b>Cached Data</b></h2>
+            <table className="postgres-data-table">
+                <thead>
+                    <tr>
+                        <th>ProductID</th>
+                        <th>Product</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.cachedData.map(([id, product]) => (
+                        <tr key={id}>
+                            <td>{id}</td>
+                            <td>{product}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
         </div>
     );
 }
