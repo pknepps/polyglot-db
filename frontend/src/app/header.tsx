@@ -90,12 +90,20 @@ export function Header() {
         router.push("/"); 
     };
 
+    // this is what happens when the user clicks the new button
+    const handleNewPageClick = () => {
+        router.push("/new");
+    };
+
     // the html for the header
     return (
         <header className="bg-sky-600 flex flex-row justify-between align-middle py-2 px-4">
             <div className="header-buttons">
                 <button className="btn" onClick={handleHomeClick}>
                     Home
+                </button>
+                <button className="btn" onClick={handleNewPageClick}>
+                    Add Data
                 </button>
                 {currentUser ? (
                     <button className="btn" onClick={openUserInfoModal}>

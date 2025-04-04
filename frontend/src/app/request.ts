@@ -413,3 +413,25 @@ export async function putUser(user: Partial<User> & Pick<User, 'username'>) {
 export async function testPromise(): Promise<any> {
   return fetch('http://localhost:8000/api/product/1');
 }
+
+export async function createProduct(productData: { name: string; price: number }) {
+  try {
+      const response = await fetch(`${backendAddress}product/`, {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify(productData),
+      });
+
+      if (!response.ok) {
+          throw new Error("Failed to create product");
+      }
+
+      const data = await response.json();
+      return data; // Return the response data (e.g., success message or created product)
+  } catch (error) {
+      console.error("Error creating product:", error);
+      throw error; // Re-throw the error to handle it in the calling component
+  }
+}

@@ -190,7 +190,7 @@ function apiGetUser(router: Router) {
  * @param mongo_db The mongo database to query.
  */
 function apiPostProduct(router: Router) {
-  router.post('/product/', (req: Request, res: Response) => {
+  router.post("/product/", (req: Request, res: Response) => {
     try {
       const product_data = req.body;
       console.log(`Received POST request for products: ${product_data}`);
@@ -210,7 +210,10 @@ function apiPostProduct(router: Router) {
       };
 
       newProduct(record, product);
-      res.status(200).send('Product added.\n');
+      res.status(200).json({
+        message: "Product added successfully.",
+        product: newProduct,
+    });
     } catch (e) {
       console.log(e);
       res.status(400).send('Invalid parameters\n');
