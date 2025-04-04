@@ -1,8 +1,21 @@
 "use client";
+/**
+ * This is a client component that allows the user to create new data.
+ * It includes buttons for creating a new product, user, transaction, or generating random data.
+ * 
+ * @author Dalton Rogers
+ * @version 4/4/25
+ */
+
+// the imports needed for this component
 import { ReactElement, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./page.css"; // Import the CSS file
 
+/**
+ * Generates the layout for the new data page.
+ * @returns A page that allows the user to create new data.
+ */
 export default function NewLayout(): ReactElement {
     const router = useRouter();
     const [pageSelected, setPageSelected] = useState<ReactElement>(<div>Select an option above</div>);
