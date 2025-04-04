@@ -6,7 +6,7 @@
 
 ## Dr. Holliday
 
-## 4/3/2025
+## 4/4/2025
 
 ---
 
@@ -14,8 +14,7 @@
 
 - Complete poster revisions and turn it in.
 - Flesh out front-end for poster session.
-- Implement redis visualization
--
+- Implement redis visualization.
 
 ### Activity Log
 
@@ -37,3 +36,10 @@
 | Preston | 3/24 | 30 minutes | Worked on poster, completing the experiences and reflections section | We now had a final format of the poster to iterate on |
 | Preston | 3/28 | 15 minutes | Worked on poster ||
 | Preston | 3/30 | 30 minutes | Made my final adjustments to poster | had a complete poster that just needed a few feedback changes |
+| Dalton | 3/28 | 1 hr 30 minutes | Added the schema section to the poster. | The poster now has the structure of our databases visualized. |
+| Dalton | 3/29 | 45 minutes | Made revisions to the neo4j graph in the schema section and tested out different fonts. | The schema section is complete. |
+| Dalton | 3/31 | 30 minutes | Made the final corrections to the poster and submitted. | The poster is complete.|
+| Dalton | 4/1 | 30 minutes | Implemented possible helper methods for the search bar and finding products. | This did not work very well, decided to go back to a context. |
+| Dalton | 4/2 | 1 hour | Fixed the search bar using contexts. | The search bar is back to functional. |
+| Dalton | 4/3 | 3 hours | Worked on styling for the add data page, and got adding products working successfully. | We can now add products completely from the frontend. |
+| Dalton | 4/3 | 2 hours | Implemented the ability to add users as well. | We can now add users from the frontend. |
