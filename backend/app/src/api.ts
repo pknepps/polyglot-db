@@ -179,7 +179,7 @@ function apiGetUser(router: Router) {
     console.log(`Received GET request for user ${username}`);
     getUser(username)
       .then((user) => res.json(user))
-      .catch((_) => res.status(404).send('Not Found.\n.'));
+      .catch((_) => res.status(404).json({ exists: false}));
   });
 }
 
@@ -216,7 +216,7 @@ function apiPostProduct(router: Router) {
     });
     } catch (e) {
       console.log(e);
-      res.status(400).send('Invalid parameters\n');
+      res.status(400).json('Invalid parameters\n');
     }
   });
 }
@@ -253,6 +253,7 @@ function apiPostUser(router: Router) {
   router.post('/user/', (req: Request, res: Response) => {
     try {
       const { username, first, last } = req.body;
+      
       const user: User = {
         username,
         firstName: first,
@@ -270,7 +271,10 @@ function apiPostUser(router: Router) {
         lastName: last,
       };
       newUser(userRecord, user);
-      res.status(200).send('User added.\n');
+      res.status(200).json({
+        message: "User added successfully.",
+        product: newUser,
+    });
     } catch (e) {
       console.log(e);
       res.status(400).send('Invalid parameters.\n');

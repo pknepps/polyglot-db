@@ -447,9 +447,9 @@ export async function createProduct(productData: { name: string; price: number }
  * @param userData The data of the user we want to create.
  * @returns The created user, or an error if something goes wrong.
  */
-export async function createUser(userData: { username: string; firstname: string; lastname: string }) {
+export async function createUser(userData: { username: string; first: string; last: string }) {
   try {
-      const response = await fetch(`${backendAddress}users/`, {
+      const response = await fetch(`${backendAddress}user/`, {
           method: "POST",
           headers: {
               "Content-Type": "application/json",
@@ -466,5 +466,35 @@ export async function createUser(userData: { username: string; firstname: string
   } catch (error) {
       console.error("Error creating user:", error);
       throw error;
+  }
+}
+
+/**
+ * Check if a username is available.
+ * 
+ * @param username The username we want to check the availability of.
+ * @returns True if the username is available, false if it is not.
+ */
+export async function checkUsernameAvailability(username: string): Promise<boolean> {
+  try {
+      const response = await fetch(`${backendAddress}user/${username}`, {
+          method: "GET",
+          headers: {
+              "Content-Type": "application/json",
+          },
+      });
+
+      if (response.status === 404) {
+          return false;
+      }
+
+      if (!response.ok) {
+          throw new Error("Failed to check username availability");
+      }
+
+      return true;
+  } catch (error) {
+      console.error("Error checking username availability:", error);
+      return false; // Ensure a boolean is returned even in case of an error
   }
 }
