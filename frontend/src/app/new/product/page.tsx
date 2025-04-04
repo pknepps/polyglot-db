@@ -1,7 +1,20 @@
 "use client";
+/**
+ * This is a client component that allows the user to create a new product.
+ * It includes a form with fields for the product name and price.
+ * 
+ * @author Dalton Rogers
+ * @version 4/3/25
+ */
+
+// needed imports
 import { useState } from "react";
 import { createProduct } from "@/app/request";
 
+/**
+ * Allows a user to create a new user.
+ * @returns A form that allows the user to create a new product.
+ */
 export default function CreateProductPage() {
     const [productName, setProductName] = useState("");
     const [productPrice, setProductPrice] = useState("");
