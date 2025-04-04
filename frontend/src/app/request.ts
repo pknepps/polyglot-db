@@ -531,3 +531,80 @@ export async function checkUsernameAvailability(username: string): Promise<boole
       return false; // Ensure a boolean is returned even in case of an error
   }
 }
+
+/**
+ * Check to see if a username exists.
+ * 
+ * @param username The username we want to check the availability of.
+ * @returns True if the username exists, false otherwise.
+ */
+export async function checkUsernameExists(username: string): Promise<boolean> {
+  if (await checkUsernameAvailability(username)) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+/**
+ * Check if a product ID exists.
+ * 
+ * @param productId The product ID to check.
+ * @returns True if the product ID exists, false otherwise.
+ */
+export async function checkProductExists(productId: number): Promise<boolean> {
+  try {
+    const response = await fetch(`${backendAddress}product/${productId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.status === 200) {
+      return true; 
+    } else if (response.status === 404) {
+      return false; 
+    } else {
+      throw new Error('Failed to check product ID');
+    }
+  } catch (error) {
+    console.error('Error checking product ID:', error);
+    throw error;
+  }
+}
+
+/**
+ * Used to create a new transaction.
+ * 
+ * @param transactionData The data of the transaction we want to create.
+ * @returns A success message or throws an error if something goes wrong.
+ */
+export async function createTransaction(transactionData: {
+  username: string;
+  productId: number;
+  cardNum: number;
+  address: string;
+  city: string;
+  state: string;
+  zip: number;
+}): Promise<string> {
+  try {
+    const response = await fetch(`${backendAddress}transaction/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(transactionData),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to create transaction");
+    }
+
+    return await response.text();
+  } catch (error) {
+    console.error("Error creating transaction:", error);
+    throw error;
+  }
+}
