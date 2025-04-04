@@ -348,6 +348,9 @@ async function caseSix() {
  * @returns The sanitized string.
  */
 export function sanitize(str: String){
+    // if (typeof str !== "string") {
+    //     return "";
+    // }
     return str.replace(/["'`]/g, "^");
 }
 

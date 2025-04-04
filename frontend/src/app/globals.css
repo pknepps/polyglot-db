@@ -37,3 +37,10 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+
+.products-title {
+    font-size: 2rem;
+    font-weight: bold; 
+    text-align: center; 
+    margin-bottom: 1rem; 
+}

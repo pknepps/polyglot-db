@@ -446,3 +446,88 @@ export async function putUser(user: Partial<User> & Pick<User, 'username'>) {
 export async function testPromise(): Promise<any> {
   return fetch('http://localhost:8000/api/product/1');
 }
+
+/**
+ * Used to create a new product.
+ * 
+ * @param productData The data of the product we want to create.
+ * @returns The created product, or an error if something goes wrong.
+ */
+export async function createProduct(productData: { name: string; price: number }) {
+  try {
+      const response = await fetch(`${backendAddress}product/`, {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify(productData),
+      });
+
+      if (!response.ok) {
+          throw new Error("Failed to create product");
+      }
+
+      const data = await response.json();
+      return data;
+  } catch (error) {
+      console.error("Error creating product:", error);
+  }
+}
+
+/**
+ * Used to create a new user.
+ * 
+ * @param userData The data of the user we want to create.
+ * @returns The created user, or an error if something goes wrong.
+ */
+export async function createUser(userData: { username: string; first: string; last: string }) {
+  try {
+      const response = await fetch(`${backendAddress}user/`, {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+          throw new Error("Failed to create user");
+      }
+
+      const data = await response.json();
+      return data; 
+  } catch (error) {
+      console.error("Error creating user:", error);
+      throw error;
+  }
+}
+
+/**
+ * Check if a username is available.
+ * 
+ * @param username The username we want to check the availability of.
+ * @returns True if the username is available, false if it is not.
+ */
+export async function checkUsernameAvailability(username: string): Promise<boolean> {
+  try {
+      const response = await fetch(`${backendAddress}user/${username}`, {
+          method: "GET",
+          headers: {
+              "Content-Type": "application/json",
+          },
+      });
+
+      if (response.status === 404) {
+          return false;
+      }
+
+      if (!response.ok) {
+          throw new Error("Failed to check username availability");
+      }
+
+      return true;
+  } catch (error) {
+      console.error("Error checking username availability:", error);
+      return false; // Ensure a boolean is returned even in case of an error
+  }
+}
