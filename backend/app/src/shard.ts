@@ -21,7 +21,11 @@ dbMap.mongoDB.set("pknepps.net", 0);
 
 export async function makeConnections() {
     for (let [address, _] of dbMap.mongoDB) {
-        mongoConnections.set(address, await connectMongo(address));
+        try {
+            mongoConnections.set(address, await connectMongo(address));
+        } catch (e) {
+            console.error(`Could not connect to MongoDB at ${address}: `, e)
+        }
     }
 }
 

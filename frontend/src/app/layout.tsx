@@ -11,6 +11,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Header } from "./header";
 import { LeftSide } from "./left_side_pane";
+import { RightSide } from "./right_side_component";
 
 // define the fonts used
 const geistSans = localFont({
@@ -36,10 +37,8 @@ export const metadata: Metadata = {
  */
 export default function RootLayout({
     children,
-    rightSide,
 }: Readonly<{
     children: React.ReactNode;
-    rightSide: React.ReactNode;
 }>) {
     return (
         <html lang="en">
@@ -49,7 +48,7 @@ export default function RootLayout({
                     <div className="flex-1">
                         <LeftSide>{children}</LeftSide>
                     </div>
-                    <div className="flex-1">{rightSide}</div>
+                    <div className="flex-1"><RightSide/></div>
                 </div>
             </body>
         </html>

@@ -119,9 +119,10 @@ export async function getProducts(n: number) {
  */
 export async function getAllProducts(): Promise<Product[]> {
   try {
-    const res: Product[] = []
+    let res: Product[] = [];
     for (let [_, mongodb] of mongoConnections) {
-      res.concat(await mongodb?.collection('products').find({}).toArray() as ProductObject[]);
+      const products = await mongodb.collection('products').find({}).toArray() as ProductObject[]
+      res = res.concat(products);
     }
     return res;
   } catch (e) {
@@ -234,4 +235,29 @@ export async function getNeoGraph(pid?: number) {
     console.log(`There was a problem querying the Neo4j graph, ${e}`);
     return new Promise((_, reject) => reject());
   }
+}
+
+/**
+ * Returns the cached data of Redis, the cumulative ids and the address of the shard for the 
+ * given product.
+ *
+ * @param pid The product number we are looking at.
+ * @returns The product and its connected nodes.
+ */
+export async function getRedisData(pid?: number): Promise<any> {
+    try {
+        const cachedKeys: string[] = await redis.keys("[0-9]*");
+        const cachedData: [string, string][] = await Promise.all(cachedKeys.map(async (key): Promise<[string, string]> => {
+            const value = await redis.get(key);
+            return [key, value];
+        }));
+        let shard = pid ? ["p" + pid, await getMongoAddress("p" + pid)] : null;
+        return {
+          cachedData,
+          shard
+        }
+    } catch (e) {
+        console.error("There was an issue querying Redis Data: ", e);
+        throw e;
+    }
 }

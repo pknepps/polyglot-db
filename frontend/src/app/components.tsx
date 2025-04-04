@@ -3,7 +3,7 @@ import { Product, ProductReview } from "../../../backend/app/src/interfaces";
 import Link from "next/link";
 import { Network } from "vis-network";
 import { JsonData, JsonEditor } from "json-edit-react";
-import { Neo4jQueryData, PostgresQueryData } from "./request";
+import { Neo4jQueryData, PostgresQueryData, RedisQueryData } from "./request";
 
 export function Card({ children }: { children: React.ReactNode }) {
     return <div className="bg-slate-200 px-6 py-6 my-4 rounded-md shadow-md">{children}</div>;
@@ -196,6 +196,50 @@ export function PostgresDataTable({ data }: { data: PostgresQueryData[] }) {
                     ))}
                 </tbody>
             </table>
+        </div>
+    );
+}
+
+export function RedisDataTable({data}: {data: RedisQueryData | null}) {
+    if (!data) {
+        return <div> No data found </div>
+    }
+    return (
+        <div className="table-container">
+            <h2><b>Cached Data</b></h2>
+            <table className="postgres-data-table">
+                <thead>
+                    <tr>
+                        <th>ProductID</th>
+                        <th>Product</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.cachedData.map(([id, product]) => (
+                        <tr key={id}>
+                            <td>{id}</td>
+                            <td>{product}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+            {data.shard == null ? <div></div> : <div>
+            <h2><b>Current Shard:</b></h2>
+            <table className="postgres-data-table">
+                <thead>
+                    <tr>
+                        <th>ProductID</th>
+                        <th>Shard Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {<tr key={data.shard?.[0]}>
+                        <td>{data.shard?.[0]}</td>
+                        <td>{data.shard?.[1]}</td>
+                    </tr>}
+                </tbody>
+            </table>
+            </div>}   
         </div>
     );
 }

@@ -35,6 +35,11 @@ export interface Neo4jQueryData {
   edges: { from: number; to: number; label: string }[];
 }
 
+export interface RedisQueryData {
+    cachedData: [string, any][];
+    shard: [string, string] | null;
+}
+
 /**
  * Gets the neo4j graph data.
  *
@@ -123,11 +128,39 @@ export async function getPostgresData(
 }
 
 /**
+ * Gets redis data.
+ * 
+ * Specifically, gets cached data, cumulative id's, and the current shard
+ * @param productId The unique id of the product.
+ */
+export async function getRedisData(productId?: number): Promise<RedisQueryData> {
+      const url = productId
+    ? `${backendAddress}redis/${productId}`
+    : `${backendAddress}redis/`;
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: GETHeaders,
+        });
+        if (!response.ok) {
+            throw new Error(
+                `Failed to fetch Redis data: ${response.statusText}`
+            );
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+      console.error('Error fetching Redis data:', error);
+      throw error;
+    }
+}
+
+/**
  * Get the list of all products.
  *
  * @returns  All products.
  */
-export function getProducts(): Promise<Product[]> {
+export async function getProducts(): Promise<Product[]> {
   const request: RequestInfo = new Request(backendAddress + 'products/all', {
     method: 'GET',
     headers: GETHeaders,

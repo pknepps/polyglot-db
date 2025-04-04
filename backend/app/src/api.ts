@@ -8,7 +8,6 @@
 
 // these are the required imports
 import { Router, Request, Response } from 'express';
-import { db } from './index';
 import {
   getProduct,
   getUser,
@@ -16,9 +15,9 @@ import {
   getAllProducts,
   getNeoGraph,
   getPostgresData,
+  getRedisData,
   getProductByName
 } from './get';
-import { Db } from 'mongodb';
 import { newProduct, newUser, newTransaction } from './create';
 import {
   Product,
@@ -41,7 +40,6 @@ import {
  * Creates an Express router, which is used to define and handle API routes for the
  * application.
  *
- * @param mongo_db The mongo database to query.
  * @returns The Express Router.
  */
 export function createRouter() {
@@ -65,6 +63,7 @@ export function createRouter() {
   apiGetNeoGraph(router);
   apiGetPostgresData(router);
   apiGetMongoSchema(router);
+  apiGetRedisData(router);
   apiGetProductByName(router);
   return router;
 }
@@ -73,7 +72,6 @@ export function createRouter() {
  * Adds a route to GET the product of the given id.
  *
  * @param router The Express router to add the request to.
- * @param mongo_db The mongo database to query.
  */
 function apiGetProduct(router: Router) {
   router.get('/product/:id', (req: Request, res: Response) => {
@@ -128,6 +126,25 @@ function apiGetNeoGraph(router: Router) {
 }
 
 /**
+ * Adds a route to get the Redis data for the given product id.
+ *
+ * @param router The Express router to add the request to.
+ */
+function apiGetRedisData(router: Router) {
+    router.get('/redis/:pid?', async (req: Request, res: Response) => {
+        console.log("Recieved GET request for redis data")
+        const pid = req.params.pid ? Number(req.params.pid) : undefined;
+        try {
+            const data = await getRedisData(pid);
+            res.json(data);
+        } catch (error) {
+            console.error('Error fetching  graph data:', error);
+            res.status(500).send('Internal Server Error');
+        }
+    });
+}
+
+/**
  * Adds a route to get the mongodb schema.
  *
  * @param router The Express router to add the request to.
@@ -171,7 +188,6 @@ function apiGetPostgresData(router: Router) {
  * or responds with the message that it cannot be found.
  *
  * @param router The Express Router to add the request to.
- * @param mongo_db The mongo database to query.
  */
 function apiGetUser(router: Router) {
   router.get('/user/:username', (req: Request, res: Response) => {
@@ -187,7 +203,6 @@ function apiGetUser(router: Router) {
  * Adds a route to POST a new product.
  *
  * @param router The router to add the request to.
- * @param mongo_db The mongo database to query.
  */
 function apiPostProduct(router: Router) {
   router.post('/product/', (req: Request, res: Response) => {
@@ -222,7 +237,6 @@ function apiPostProduct(router: Router) {
  * Adds a route to PUT an update on an existing product with the given id.
  *
  * @param router The router to add the request to.
- * @param mongo_db The mongo database to query.
  */
 function apiPutProduct(router: Router) {
   router.put('/product/:id', (req: Request, res: Response) => {
@@ -244,7 +258,6 @@ function apiPutProduct(router: Router) {
  * Adds a route to POST a new User.
  *
  * @param router The router to add the request to.
- * @param mongo_db The mongo database to query.
  */
 function apiPostUser(router: Router) {
   router.post('/user/', (req: Request, res: Response) => {
@@ -279,7 +292,6 @@ function apiPostUser(router: Router) {
  * Adds a new Route to POST a new transaction.
  *
  * @param router The router to add the request to.
- * @param mongo_db The mongo database to query.
  */
 function apiPostTransaction(router: Router) {
   router.post('/transaction/', (req: Request, res: Response) => {
@@ -314,7 +326,6 @@ function apiPostTransaction(router: Router) {
  * Adds a route to POST the review from the given username, for the given product_id.
  *
  * @param router The router to add the request to.
- * @param mongo_db The mongo database to query.
  */
 function apiPostReview(router: Router) {
   router.post('/review/', (req: Request, res: Response) => {
@@ -334,7 +345,6 @@ function apiPostReview(router: Router) {
  * Adds a route to POST the rating from the given username, for the given product_id.
  *
  * @param router The router to add the request to.
- * @param mongo_db The mongo database to query.
  */
 function apiPostRating(router: Router) {
   router.post('/rating/', (req: Request, res: Response) => {
@@ -371,7 +381,6 @@ function apiGetRecommendation(router: Router) {
  * Adds a route to PUT an update on an existing user with the given username.
  *
  * @param router The router to add the request to.
- * @param mongo_db The mongo database to query.
  */
 function apiPutUser(router: Router) {
   router.put('/user/:username', (req: Request, res: Response) => {
@@ -393,7 +402,6 @@ function apiPutUser(router: Router) {
  * Adds a route to get the first n products in the database.
  *
  * @param router The Express router to add the request to.
- * @param mongo_db The mongo database to query.
  */
 function apiGetProducts(router: Router) {
   router.get('/products/:number', (req: Request, res: Response) => {
@@ -407,7 +415,6 @@ function apiGetProducts(router: Router) {
  * Adds a route to get all products in the database.
  *
  * @param router The Express router to add the request to.
- * @param mongo_db The mongo database to query.
  */
 function apiGetAllProducts(router: Router) {
   router.get('/products/all', (res: Response) => {
@@ -424,7 +431,6 @@ function apiGetAllProducts(router: Router) {
  * Adds a route to generate `quantity` random users.
  *
  * @param router The router to add the request to.
- * @param mongo_db The mongo database to query.
  */
 function apiGenerateUsers(router: Router) {
     router.post("/generate/users", async (req: Request, res: Response) => {
@@ -450,7 +456,6 @@ function apiGenerateUsers(router: Router) {
  * Adds a route to generate `quantity` random products.
  *
  * @param router The router to add the request to.
- * @param mongo_db The mongo database to query.
  */
 function apiGenerateProducts(router: Router) {
     router.post("/generate/products", async (req: Request, res: Response) => {
@@ -476,7 +481,6 @@ function apiGenerateProducts(router: Router) {
  * Adds a route to generate `quantity` random transactions.
  *
  * @param router The router to add the request to.
- * @param mongo_db The mongo database to query.
  */
 function apiGenerateTransactions(router: Router) {
     router.post("/generate/transactions", async (req: Request, res: Response) => {
@@ -500,7 +504,6 @@ function apiGenerateTransactions(router: Router) {
  * Adds a route to generate `quantity` random reviews and ratings.
  *
  * @param router The router to add the request to.
- * @param mongo_db The mongo database to query.
  */
 function apiGenerateReviews(router: Router) {
     router.post("/generate/reviews", async (req: Request, res: Response) => {
