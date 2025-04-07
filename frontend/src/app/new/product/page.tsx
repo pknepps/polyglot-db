@@ -10,6 +10,7 @@
 // needed imports
 import { useState } from "react";
 import { createProduct } from "@/app/request";
+import { Card } from '@/app/components';
 
 /**
  * Allows a user to create a new user.
@@ -40,8 +41,11 @@ export default function CreateProductPage() {
     };
 
     return (
-        <div className="page-container2">
-            <h1 className="page-title2">Create Product</h1>
+        <Card>
+            <div className="page-header2">
+                <h1 className="page-title2">Product</h1>
+                <p className="page-subtitle2">Enter product details below:</p>
+            </div>
             <form className="space-y-4" onSubmit={handleSubmit}>
                 <div>
                     <label htmlFor="productName" className="block text-lg font-medium text-gray-700">
@@ -79,6 +83,6 @@ export default function CreateProductPage() {
                 </button>
             </form>
             {message && <p className="mt-4 text-center text-gray-700">{message}</p>}
-        </div>
+        </Card>
     );
 }

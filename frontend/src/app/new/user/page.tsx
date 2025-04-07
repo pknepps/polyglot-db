@@ -10,6 +10,7 @@
 // needed imports
 import { useState } from "react";
 import { checkUsernameAvailability, createUser } from "@/app/request"; // Adjust the import path as needed
+import { Card } from '@/app/components';
 
 /**
  * Used to create a new user.
@@ -76,8 +77,11 @@ export default function CreateUserPage() {
     };
 
     return (
-        <div className="page-container2">
-            <h1 className="page-title2">Create User</h1>
+        <Card>
+            <div className="page-header2">
+                <h1 className="page-title2">User</h1>
+                <p className="page-subtitle2">Enter user details below:</p>
+            </div>
             <form className="space-y-4" onSubmit={handleSubmit}>
                 <div>
                     <label htmlFor="username" className="block text-lg font-medium text-gray-700">
@@ -129,6 +133,6 @@ export default function CreateUserPage() {
                 </button>
             </form>
             {message && <p className="mt-4 text-center text-gray-700">{message}</p>}
-        </div>
+        </Card>
     );
 }

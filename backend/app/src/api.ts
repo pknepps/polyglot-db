@@ -321,7 +321,10 @@ function apiPostTransaction(router: Router) {
       };
 
       newTransaction(transaction);
-      res.status(200).send('Transaction added\n');
+      res.status(200).json({
+        message: "Transaction added successfully.",
+        product: newTransaction,
+    });
     } catch (e) {
       console.log(e);
       res.status(400).send('Invalid parameters\n');

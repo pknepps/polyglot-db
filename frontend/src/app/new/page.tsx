@@ -11,6 +11,7 @@
 import { ReactElement, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./page.css"; // Import the CSS file
+import { Card } from '@/app/components';
 
 /**
  * Generates the layout for the new data page.
@@ -44,7 +45,7 @@ export default function NewLayout(): ReactElement {
     };
 
     return (
-        <div className="page-container2">
+        <Card>
             <div className="page-header2">
                 <h1 className="page-title2">Add Data</h1>
                 <p className="page-subtitle2">Choose an option below to add new data to the system.</p>
@@ -72,6 +73,6 @@ export default function NewLayout(): ReactElement {
                     </div>
                 )}
             </div>
-        </div>
+        </Card>
     );
 }
