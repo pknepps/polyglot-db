@@ -533,20 +533,6 @@ export async function checkUsernameAvailability(username: string): Promise<boole
 }
 
 /**
- * Check to see if a username exists.
- * 
- * @param username The username we want to check the availability of.
- * @returns True if the username exists, false otherwise.
- */
-export async function checkUsernameExists(username: string): Promise<boolean> {
-  if (await checkUsernameAvailability(username)) {
-    return false;
-  } else {
-    return true;
-  }
-}
-
-/**
  * Check if a product ID exists.
  * 
  * @param productId The product ID to check.
@@ -581,13 +567,14 @@ export async function checkProductExists(productId: number): Promise<boolean> {
  * @returns A success message or throws an error if something goes wrong.
  */
 export async function createTransaction(transactionData: {
+  transactionId: Number,
   username: string;
-  productId: number;
-  cardNum: number;
+  productId: Number;
+  cardNum: Number;
   address: string;
   city: string;
   state: string;
-  zip: number;
+  zip: Number;
 }): Promise<string> {
   try {
     const response = await fetch(`${backendAddress}transaction/`, {
@@ -602,7 +589,7 @@ export async function createTransaction(transactionData: {
       throw new Error("Failed to create transaction");
     }
 
-    return await response.text();
+    return await response.json();
   } catch (error) {
     console.error("Error creating transaction:", error);
     throw error;
