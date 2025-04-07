@@ -7,13 +7,14 @@
  * @version 4/3/25
  */
 
-// needed imports
 import { useState } from "react";
 import { createProduct } from "@/app/request";
 import { Card } from '@/app/components';
+import "@/app/globals.css";
 
 /**
- * Allows a user to create a new user.
+ * Allows a user to create a new product.
+ * 
  * @returns A form that allows the user to create a new product.
  */
 export default function CreateProductPage() {
@@ -21,7 +22,8 @@ export default function CreateProductPage() {
     const [productPrice, setProductPrice] = useState("");
     const [message, setMessage] = useState("");
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    // handle form submission
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         // create the product object

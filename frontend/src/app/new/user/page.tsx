@@ -7,10 +7,10 @@
  * @version 4/3/25
  */
 
-// needed imports
 import { useState } from "react";
-import { checkUsernameAvailability, createUser } from "@/app/request"; // Adjust the import path as needed
+import { checkUsernameAvailability, createUser } from "@/app/request";
 import { Card } from '@/app/components';
+import "@/app/globals.css";
 
 /**
  * Used to create a new user.
@@ -57,16 +57,15 @@ export default function CreateUserPage() {
             return;
         }
 
-        // Create the user object
+        // create the user object
         const userData = {
             username,
             first: firstName,
             last: lastName,
         };
 
-        console.log(userData); // Log the user data for debugging
         try {
-            const response = await createUser(userData); // Call the API to create a user
+            const response = await createUser(userData);
             setMessage("User created successfully!");
             setUsername("");
             setFirstname("");

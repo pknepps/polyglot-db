@@ -10,7 +10,7 @@
 // the imports needed for this component
 import { ReactElement, useState } from "react";
 import { useRouter } from "next/navigation";
-import "./page.css"; // Import the CSS file
+import "@/app/globals.css";
 import { Card } from '@/app/components';
 
 /**

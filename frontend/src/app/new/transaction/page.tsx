@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Card } from '@/app/components';
 import { checkProductExists, checkUsernameAvailability } from '@/app/request';
+import "@/app/globals.css";
 
 const TransactionPage = () => {
   const [username, setUsername] = useState('');
@@ -70,7 +71,9 @@ const TransactionPage = () => {
       return;
     }
 
-    const formData = { transactionId:0, username, productId, cardNum, address, city, state, zip };
+    const formData = { username, productId, cardNum, address, city, state, zip };
+
+    console.log(formData);
 
     try {
       const response = await fetch('/transaction/', {
@@ -88,15 +91,15 @@ const TransactionPage = () => {
 
       if (response.ok) {
         setMessage('Transaction submitted successfully!');
-        setUsername('');
-        setProductId('');
-        setCardNum('');
-        setAddress('');
-        setCity('');
-        setState('');
-        setZip('');
+        setUsername("");
+        setProductId("");
+        setCardNum("");
+        setAddress("");
+        setCity("");
+        setState("");
+        setZip("");
       } else {
-        setMessage('Failed to submit transaction. Please try again.');
+        setMessage("Failed to submit transaction. Please try again.");
       }
     } catch (error) {
       console.error('Error submitting transaction:', error);

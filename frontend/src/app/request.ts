@@ -567,7 +567,6 @@ export async function checkProductExists(productId: number): Promise<boolean> {
  * @returns A success message or throws an error if something goes wrong.
  */
 export async function createTransaction(transactionData: {
-  transactionId: Number,
   username: string;
   productId: Number;
   cardNum: Number;

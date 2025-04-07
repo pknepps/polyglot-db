@@ -303,6 +303,7 @@ function apiPostUser(router: Router) {
 function apiPostTransaction(router: Router) {
   router.post('/transaction/', (req: Request, res: Response) => {
     try {
+      console.log("GOT HERE");
       const { username, productId, cardNum, address, city, state, zip } =
         req.body;
       console.log(
