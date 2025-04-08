@@ -594,3 +594,77 @@ export async function createTransaction(transactionData: {
     throw error;
   }
 }
+
+/**
+ * Generate random users.
+ *
+ * @param quantity The number of random users to generate.
+ * @returns A success message or throws an error if something goes wrong.
+ */
+export async function generateRandomUsers(quantity: number): Promise<string> {
+  try {
+    const response = await fetch(`${backendAddress}generate/users`, {
+      method: "POST",
+      headers: POSTHeaders,
+      body: JSON.stringify({ quantity }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to generate random users");
+    }
+
+    return await response.text();
+  } catch (error) {
+    console.error("Error generating random users:", error);
+    throw error;
+  }
+}
+
+/**
+ * Generate random products.
+ * 
+ * @param quantity The number of random products to generate.
+ * @returns A success message or throws an error if something goes wrong.
+ */
+export async function generateRandomProducts(quantity: number): Promise<string> {
+  try {
+    const response = await fetch(`${backendAddress}generate/products`, {
+      method: "POST",
+      headers: POSTHeaders,
+      body: JSON.stringify({ quantity }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to generate random products");
+    }
+
+    return await response.text();
+  } catch (error) {
+    console.error("Error generating random products:", error);
+    throw error;
+  }
+}
+
+/**
+ * Generate random transactions.
+ * @param quantity The number of random transactions to generate.
+ * @returns A success message or throws an error if something goes wrong.
+ */
+export async function generateRandomTransactions(quantity: number): Promise<string> {
+  try {
+    const response = await fetch(`${backendAddress}generate/transactions`, {
+      method: "POST",
+      headers: POSTHeaders,
+      body: JSON.stringify({ quantity }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to generate random transactions");
+    }
+
+    return await response.text();
+  } catch (error) {
+    console.error("Error generating random transactions:", error);
+    throw error;
+  }
+}
