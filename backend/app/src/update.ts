@@ -8,6 +8,7 @@
 // these are the required imports
 import { User, Product } from "./interfaces";
 import { getMongoAddress, mongoConnections } from "./shard";
+import { pullIntoCache } from "./cache";
 
 /**
  * Updates a property in user.
@@ -56,7 +57,8 @@ export async function addReview(review: { username: string; product_id: number; 
         )
         .then((_) => console.log("Successfully added review to user: ", review.username))
         .catch((error) => console.log("Failed to add review to user: ", review.username, "\n", error));
-    db = mongoConnections.get((await getMongoAddress("p" + review.product_id))!)
+    const address = (await getMongoAddress("p" + review.product_id))!
+    db = mongoConnections.get(address);
     const addProductReviews = db!
         .collection("products")
         .updateOne(
@@ -97,4 +99,5 @@ export async function addRating(rating: { username: string; product_id: number; 
         .then((_) => console.log("Successfully added rating to product: ", rating.product_id))
         .catch((error) => console.log("Failed to add rating to product: ", rating.product_id, "\n", error));
     await Promise.all([addRatingsToUsers, addRatingsToProducts]);
+    await pullIntoCache(rating.product_id, db!);
 }

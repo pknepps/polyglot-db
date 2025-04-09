@@ -7,13 +7,15 @@
  * @Version 11/26/2024
  */
 
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, Context } from "react";
 import "./header.css";
 import { getUser } from "@/app/request";
 import { User } from "../../../backend/app/src/interfaces";
 import { Modal } from "./components";
 import { useRouter } from "next/navigation";
 import { SearchContext } from "./searchContext";
+
+export const currentUserContext = React.createContext<User | null>(null)
 
 /**
  * Creates the header component for the UI.
@@ -105,7 +107,7 @@ export function Header() {
                 <button className="btn" onClick={handleNewPageClick}>
                     Add Data
                 </button>
-                {currentUser ? (
+                <currentUserContext.Provider value={currentUser}>{currentUser ? (
                     <button className="btn" onClick={openUserInfoModal}>
                         {currentUser.username}
                     </button>
@@ -114,6 +116,7 @@ export function Header() {
                         Me
                     </button>
                 )}
+                </currentUserContext.Provider>
             </div>
             <div className="header-search flex align-middle">
                 <button className="hover:bg-black rounded-full">

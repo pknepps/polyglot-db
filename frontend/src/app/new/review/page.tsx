@@ -1,20 +1,17 @@
 "use client";
 import React, { useState } from 'react';
 import { Card } from '@/app/components';
-import { checkProductExists, checkUsernameAvailability, postTransaction } from '@/app/request';
+import { checkProductExists, checkUsernameAvailability, postReview, postRating } from '@/app/request';
 import "@/app/globals.css";
 
-const TransactionPage = () => {
+export default function ReviewPage() {
   const [username, setUsername] = useState('');
   const [productId, setProductId] = useState('');
-  const [cardNum, setCardNum] = useState('');
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [zip, setZip] = useState('');
+  const [review, setReview] = useState('');
+  const [rating, setRating] = useState('');
   const [message, setMessage] = useState('');
-  const [isUsernameValid, setIsUsernameValid] = useState(true);
-  const [isProductValid, setIsProductValid] = useState(true);
+  const [isUsernameValid, setIsUsernameValid] = useState(false);
+  const [isProductValid, setIsProductValid] = useState(false);
 
   // Validate username
   const handleUsernameChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,20 +68,30 @@ const TransactionPage = () => {
       return;
     }
 
-    const formData = { 
-      transactionId: 0,
+    const reviewFormData = { 
       username, 
-      productId: Number(productId),
-      cardNum: Number(productId), 
-      address, 
-      city, 
-      state, 
-      zip: Number(zip) };
+      product_id: Number(productId),
+      review,
+    }
+
+    const ratingFormData = { 
+      username, 
+      product_id: Number(productId),
+      rating: Number(rating),
+    }
 
     try {
-      const response = await postTransaction(formData);
+      const response = await postReview(reviewFormData);
+      console.log(response);
     } catch (error) {
-      console.error('Error submitting transaction:', error);
+      console.error('Error submitting review:', error);
+      setMessage('An error occurred. Please try again.');
+    }
+    try {
+      const response = await postRating(ratingFormData);
+      console.log(response);
+    } catch (error) {
+      console.error('Error submitting rating:', error);
       setMessage('An error occurred. Please try again.');
     }
   };
@@ -92,8 +99,8 @@ const TransactionPage = () => {
   return (
     <Card>
       <div className="page-header2">
-        <h1 className="page-title2">Transaction</h1>
-        <p className="page-subtitle2">Enter transaction details below:</p>
+        <h1 className="page-title2">Rating/Review</h1>
+        <p className="page-subtitle2">Enter review details below:</p>
       </div>
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div>
@@ -129,72 +136,30 @@ const TransactionPage = () => {
           />
         </div>
         <div>
-          <label htmlFor="cardNum" className="block text-lg font-medium text-gray-700">
-            Card Number
+          <label htmlFor="rating" className="block text-lg font-medium text-gray-700">
+            Rating
           </label>
           <input
             type="number"
-            id="cardNum"
-            value={cardNum}
-            onChange={(e) => setCardNum(e.target.value)}
+            id="rating"
+            value={rating}
+            onChange={(e) => setRating(e.target.value)}
             className="mt-2 block w-full rounded-lg border-gray-200 bg-gray-50 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg"
-            placeholder="Enter card number"
+            placeholder="Enter your rating out of 5"
             required
           />
         </div>
         <div>
-          <label htmlFor="address" className="block text-lg font-medium text-gray-700">
-            Address
+          <label htmlFor="review" className="block text-lg font-medium text-gray-700">
+            Review
           </label>
           <input
             type="text"
-            id="address"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            id="review"
+            value={review}
+            onChange={(e) => setReview(e.target.value)}
             className="mt-2 block w-full rounded-lg border-gray-200 bg-gray-50 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg"
-            placeholder="Enter address"
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="city" className="block text-lg font-medium text-gray-700">
-            City
-          </label>
-          <input
-            type="text"
-            id="city"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            className="mt-2 block w-full rounded-lg border-gray-200 bg-gray-50 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg"
-            placeholder="Enter city"
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="state" className="block text-lg font-medium text-gray-700">
-            State
-          </label>
-          <input
-            type="text"
-            id="state"
-            value={state}
-            onChange={(e) => setState(e.target.value)}
-            className="mt-2 block w-full rounded-lg border-gray-200 bg-gray-50 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg"
-            placeholder="Enter state"
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="zip" className="block text-lg font-medium text-gray-700">
-            ZIP Code
-          </label>
-          <input
-            type="number"
-            id="zip"
-            value={zip}
-            onChange={(e) => setZip(e.target.value)}
-            className="mt-2 block w-full rounded-lg border-gray-200 bg-gray-50 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg"
-            placeholder="Enter ZIP code"
+            placeholder="Enter your review"
             required
           />
         </div>
@@ -210,5 +175,3 @@ const TransactionPage = () => {
     </Card>
   );
 };
-
-export default TransactionPage;

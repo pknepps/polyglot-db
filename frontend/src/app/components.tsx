@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Network } from "vis-network";
 import { JsonData, JsonEditor } from "json-edit-react";
 import { Neo4jQueryData, PostgresQueryData, RedisQueryData } from "./request";
+import { useRouter } from "next/navigation";
 
 export function Card({ children }: { children: React.ReactNode }) {
     return <div className="bg-slate-200 px-6 py-6 my-4 rounded-md shadow-md">{children}</div>;
@@ -39,10 +40,15 @@ export function ProductView({
     style: "preview" | "full";
     recommendations: Partial<Product>[];
 }) {
+    const router = useRouter();
     // get the average rating of the product
     const avgRating = productDetails
         ? productDetails.ratings.reduce((sum, current) => sum + current.rating, 0) / productDetails.ratings.length
         : null;
+
+    const handleAddReview = () => {
+        router.push("/new/review")
+    }
     return style === "preview" ? (
         <div>
             <Card>
@@ -64,6 +70,7 @@ export function ProductView({
                     <h2 className="font-bold">Ratings and Reviews:</h2>
                     <h4>User Rating: {avgRating ? `${avgRating?.toFixed(1)}/5` : "No ratings available"}</h4>
                 </Card>
+                <button className="btn2 btn2-blue" onClick={handleAddReview}>Add Review</button>
                 <Card>
                     <h3 className="font-bold">Reviews:</h3>
                     {productDetails.reviews.map((review, i) => (
@@ -224,7 +231,8 @@ export function RedisDataTable({data}: {data: RedisQueryData | null}) {
             </table>
             </div>}   
             <h2><b>Cached Data</b></h2>
-            <table className="postgres-data-table">
+            {data.cachedData.length == 0 ? <div>No cached data</div> 
+            : <table className="postgres-data-table">
                 <thead>
                     <tr>
                         <th>ProductID</th>
@@ -235,11 +243,13 @@ export function RedisDataTable({data}: {data: RedisQueryData | null}) {
                     {data.cachedData.map(([id, product]) => (
                         <tr key={id}>
                             <td>{id}</td>
-                            <td>{product}</td>
+                            <td>
+                                <JsonEditor data={JSON.parse(product)} viewOnly={true} collapse={0}/>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
-            </table>
+            </table>}
         </div>
     );
 }

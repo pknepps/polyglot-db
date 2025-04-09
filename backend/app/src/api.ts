@@ -301,10 +301,8 @@ function apiPostUser(router: Router) {
  * @param router The router to add the request to.
  */
 function apiPostTransaction(router: Router) {
-  console.log("HERE IN API POST TRANSACTION");
   router.post('/transaction/', (req: Request, res: Response) => {
     try {
-      console.log("GOT HERE");
       const { username, productId, cardNum, address, city, state, zip } =
         req.body;
       console.log(
@@ -343,7 +341,7 @@ function apiPostReview(router: Router) {
   router.post('/review/', (req: Request, res: Response) => {
     try {
       const data = req.body;
-      console.log(`Received POST request for review: ${data}`);
+      console.log(`Received POST request for review: ${JSON.stringify(data)}`);
       addReview(data);
       res.status(200).send('Review added\n');
     } catch (e) {
@@ -362,7 +360,7 @@ function apiPostRating(router: Router) {
   router.post('/rating/', (req: Request, res: Response) => {
     try {
       const data = req.body;
-      console.log(`Received POST request for rating ${data}`);
+      console.log(`Received POST request for rating ${JSON.stringify(data)}`);
       addRating(data);
       res.status(200).send('Rating added\n');
     } catch (e) {

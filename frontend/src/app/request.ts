@@ -355,7 +355,7 @@ export async function postTransaction(
  */
 export async function postRating(rating: {
   username: string;
-  productId: number;
+  product_id: number;
   rating: number;
 }): Promise<string> {
   const request: RequestInfo = new Request(backendAddress + 'rating/', {
@@ -379,8 +379,8 @@ export async function postRating(rating: {
  */
 export async function postReview(rating: {
   username: string;
-  productId: number;
-  review: number;
+  product_id: number;
+  review: string;
 }): Promise<string> {
   const request: RequestInfo = new Request(backendAddress + 'review/', {
     method: 'POST',
