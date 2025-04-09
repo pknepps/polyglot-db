@@ -301,6 +301,7 @@ function apiPostUser(router: Router) {
  * @param router The router to add the request to.
  */
 function apiPostTransaction(router: Router) {
+  console.log("HERE IN API POST TRANSACTION");
   router.post('/transaction/', (req: Request, res: Response) => {
     try {
       console.log("GOT HERE");

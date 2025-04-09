@@ -584,9 +584,9 @@ export async function createTransaction(transactionData: {
       body: JSON.stringify(transactionData),
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to create transaction");
-    }
+    // if (!response.ok) {
+    //   throw new Error("Failed to create transaction");
+    // }
 
     return await response.json();
   } catch (error) {
