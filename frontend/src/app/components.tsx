@@ -46,8 +46,11 @@ export function ProductView({
         ? productDetails.ratings.reduce((sum, current) => sum + current.rating, 0) / productDetails.ratings.length
         : null;
 
+    const handleBuy = () => {
+        router.push("/new/transaction");
+    }
     const handleAddReview = () => {
-        router.push("/new/review")
+        router.push("/new/review");
     }
     return style === "preview" ? (
         <div>
@@ -66,6 +69,7 @@ export function ProductView({
                 <span className="text-sm text-gray-600 mt-16">id: {productDetails.product_id}</span>
 
                 <div className="bg-slate-300 w-20 rounded-md font-bold text-xl">${productDetails.price.toFixed(2)}</div>
+                <button className="btn2 btn2-blue" onClick={handleBuy}>Purchase</button>
                 <Card>
                     <h2 className="font-bold">Ratings and Reviews:</h2>
                     <h4>User Rating: {avgRating ? `${avgRating?.toFixed(1)}/5` : "No ratings available"}</h4>
