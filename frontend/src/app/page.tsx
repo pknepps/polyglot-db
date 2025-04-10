@@ -7,7 +7,7 @@ import { getProducts } from "./request";
 import { Product } from "../../../backend/app/src/interfaces";
 import Link from "next/link";
 import { ProductView } from "./components";
-import { SearchContext } from "./searchContext";
+import { SearchContext, CurrentSelectionContext } from "./context";
 
 /**
  * Used to display all products in the database.
@@ -16,10 +16,13 @@ import { SearchContext } from "./searchContext";
  */
 export default function AllProducts(): ReactElement {
     const searchContext = useContext(SearchContext);
+    const currentSelectionContext = useContext(CurrentSelectionContext);
 
-    if (!searchContext) {
-        throw new Error("SearchContext is not provided. Make sure to wrap the component with SearchContext.Provider.");
+    if (!currentSelectionContext || !searchContext) {
+        throw new Error("context is not provided. Ensure it is wrapped in a provider.");
     }
+
+    const { setCurrentProductId } = currentSelectionContext;
 
     const { searchQuery } = searchContext;
     const [products, setProducts] = useState<Product[]>([]);
@@ -36,6 +39,7 @@ export default function AllProducts(): ReactElement {
         async function fetchProducts() {
             try {
                 const products = await getProducts();
+                setCurrentProductId("");
                 setProducts(products);
             } catch (error) {
                 console.error("Error fetching products:", error);

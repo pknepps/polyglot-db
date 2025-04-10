@@ -1,12 +1,18 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Card } from '@/app/components';
 import { checkProductExists, checkUsernameAvailability, postReview, postRating } from '@/app/request';
+import { CurrentSelectionContext } from '@/app/context';
 import "@/app/globals.css";
 
 export default function ReviewPage() {
-  const [username, setUsername] = useState('');
-  const [productId, setProductId] = useState('');
+  const currentSelectionContext = useContext(CurrentSelectionContext);
+      if (!currentSelectionContext) {
+          throw new Error("SearchContext is not provided. Make sure to wrap the component with SearchContext.Provider.");
+      }
+  const {currentUsername, currentProductId}  = currentSelectionContext
+  const [username, setUsername] = useState(currentUsername);
+  const [productId, setProductId] = useState(currentProductId);
   const [review, setReview] = useState('');
   const [rating, setRating] = useState('');
   const [message, setMessage] = useState('');

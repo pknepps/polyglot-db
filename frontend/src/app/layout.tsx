@@ -11,7 +11,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Header } from "./header";
 import { LeftSide } from "./left_side_pane";
-import { SearchProvider } from "./searchContext";
+import { SearchProvider, CurrentSelectionProvider } from "./context";
 import { SelectedDbProvider } from "./selected_db_context";
 
 // define the fonts used
@@ -47,15 +47,17 @@ export default function RootLayout({
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable}`}>
                 <SearchProvider>
-                    <Header />
-                    <div className="flex h-full">
-                        <div className="flex-1">
-                            <LeftSide>{children}</LeftSide>
+                    <CurrentSelectionProvider>
+                        <Header />
+                        <div className="flex h-full">
+                            <div className="flex-1">
+                                <LeftSide>{children}</LeftSide>
+                            </div>
+                            <SelectedDbProvider>
+                                <div className="flex-1">{rightside}</div>
+                            </SelectedDbProvider>
                         </div>
-                        <SelectedDbProvider>
-                            <div className="flex-1">{rightside}</div>
-                        </SelectedDbProvider>
-                    </div>
+                    </CurrentSelectionProvider>
                 </SearchProvider>
             </body>
         </html>

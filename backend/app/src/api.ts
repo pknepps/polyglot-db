@@ -132,7 +132,6 @@ function apiGetNeoGraph(router: Router) {
  */
 function apiGetRedisData(router: Router) {
     router.get('/redis/:pid?', async (req: Request, res: Response) => {
-        console.log("Recieved GET request for redis data")
         const pid = req.params.pid ? Number(req.params.pid) : undefined;
         try {
             const data = await getRedisData(pid);

@@ -75,11 +75,12 @@ body {
 
 /* Button grid */
 .button-grid2 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-    max-width: 32rem; 
+    display: flex;
+    gap: 25px;
+    max-width: 100%; 
     width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 /* Button styles */

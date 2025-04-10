@@ -35,6 +35,10 @@ export default function NewLayout(): ReactElement {
                 setPageSelected(<div>Create Transaction Page</div>);
                 router.push("/new/transaction");
                 break;
+            case "review":
+                setPageSelected(<div>Create Rating/Review Page</div>);
+                router.push("/new/review");
+                break;
             case "random":
                 setPageSelected(<div>Generate Random Data Page</div>);
                 router.push("/new/random");
@@ -59,6 +63,9 @@ export default function NewLayout(): ReactElement {
                 </button>
                 <button className="btn2 btn2-blue" onClick={() => handlePageChange("transaction")}>
                     Create Transaction
+                </button>
+                <button className="btn2 btn2-blue" onClick={() => handlePageChange("review")}>
+                    Create Rating/Review
                 </button>
                 <button className="btn2 btn2-blue" onClick={() => handlePageChange("random")}>
                     Generate Random Data

@@ -1,9 +1,10 @@
 "use client";
 
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useEffect, useState, useContext } from "react";
 import { getProduct, getRecommendations } from "@/app/request";
 import { Product } from "../../../../../backend/app/src/interfaces";
 import { ProductView } from "@/app/components";
+import { CurrentSelectionContext } from "@/app/context";
 
 /**
  * Interface for the ProductLayout component. product_id is the id of the product the
@@ -20,6 +21,13 @@ interface ProductLayoutProps {
  */
 export default function ProductLayout({ params }: ProductLayoutProps): ReactElement {
     // holds the product details
+    const currentSelectionContext = useContext(CurrentSelectionContext);
+
+    if (!currentSelectionContext) {
+        throw new Error("context is not provided. Ensure it is wrapped in a provider.");
+    }
+
+    const { setCurrentProductId } = currentSelectionContext;
     const [productDetails, setProductDetails] = useState<Product | null>(null);
     const [recommendations, setRecommendations] = useState<Partial<Product>[]>([]);
 
@@ -29,11 +37,13 @@ export default function ProductLayout({ params }: ProductLayoutProps): ReactElem
             const productId = Number((await params).id);
             if (isNaN(productId)) {
                 setProductDetails(null);
+                setCurrentProductId("");
                 return;
             }
             try {
                 const productData = await getProduct(productId);
                 setProductDetails(productData);
+                setCurrentProductId("" + productData.product_id);
             } catch (error) {
                 console.error("Error fetching product details:", error);
             }

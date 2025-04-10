@@ -13,9 +13,7 @@ import { getUser } from "@/app/request";
 import { User } from "../../../backend/app/src/interfaces";
 import { Modal } from "./components";
 import { useRouter } from "next/navigation";
-import { SearchContext } from "./searchContext";
-
-export const currentUserContext = React.createContext<User | null>(null)
+import { SearchContext, CurrentSelectionContext } from "./context";
 
 /**
  * Creates the header component for the UI.
@@ -32,9 +30,13 @@ export function Header() {
     const [error, setError] = useState("");
     const [searchInput, setSearchInput] = useState("");
     const searchContext = useContext(SearchContext);
-    if (!searchContext) {
-        throw new Error("SearchContext is not provided. Ensure it is wrapped in a provider.");
+    const currentSelectionContext = useContext(CurrentSelectionContext);
+
+    if (!searchContext || !currentSelectionContext) {
+        throw new Error("context is not provided. Ensure it is wrapped in a provider.");
     }
+
+    const { setCurrentUsername } = currentSelectionContext;
     const { setSearchQuery } = searchContext;
 
     // open the login modal
@@ -62,6 +64,7 @@ export function Header() {
             const user = await getUser(username);
             if (user != null) {
                 setCurrentUser(user);
+                setCurrentUsername(user.username)
                 closeLoginModal();
             } else {
                 setError("User not found. Try again.");
@@ -75,6 +78,7 @@ export function Header() {
     // resets the user when they sign out
     const handleSignOut = () => {
         setCurrentUser(null);
+        setCurrentUsername('');
         setUsername("");
     };
 
@@ -107,7 +111,7 @@ export function Header() {
                 <button className="btn" onClick={handleNewPageClick}>
                     Add Data
                 </button>
-                <currentUserContext.Provider value={currentUser}>{currentUser ? (
+                {currentUser ? (
                     <button className="btn" onClick={openUserInfoModal}>
                         {currentUser.username}
                     </button>
@@ -116,7 +120,6 @@ export function Header() {
                         Me
                     </button>
                 )}
-                </currentUserContext.Provider>
             </div>
             <div className="header-search flex align-middle">
                 <button className="hover:bg-black rounded-full">

@@ -1,12 +1,18 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Card } from '@/app/components';
 import { checkProductExists, checkUsernameAvailability, postTransaction } from '@/app/request';
 import "@/app/globals.css";
+import { CurrentSelectionContext } from '@/app/context';
 
 const TransactionPage = () => {
-  const [username, setUsername] = useState('');
-  const [productId, setProductId] = useState('');
+  const currentSelectionContext = useContext(CurrentSelectionContext);
+      if (!currentSelectionContext) {
+          throw new Error("SearchContext is not provided. Make sure to wrap the component with SearchContext.Provider.");
+      }
+  const {currentUsername, currentProductId}  = currentSelectionContext
+  const [username, setUsername] = useState(currentUsername);
+  const [productId, setProductId] = useState(currentProductId);
   const [cardNum, setCardNum] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
