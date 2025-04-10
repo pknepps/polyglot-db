@@ -12,6 +12,7 @@ import "./globals.css";
 import { Header } from "./header";
 import { LeftSide } from "./left_side_pane";
 import { SearchProvider } from "./searchContext";
+import { SelectedDbProvider } from "./selected_db_context";
 
 // define the fonts used
 const geistSans = localFont({
@@ -51,7 +52,9 @@ export default function RootLayout({
                         <div className="flex-1">
                             <LeftSide>{children}</LeftSide>
                         </div>
-                        <div className="flex-1">{rightside}</div>
+                        <SelectedDbProvider>
+                            <div className="flex-1">{rightside}</div>
+                        </SelectedDbProvider>
                     </div>
                 </SearchProvider>
             </body>

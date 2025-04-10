@@ -6,18 +6,14 @@
  * @Version 12/4/2024
  */
 
-import React, { useState } from "react";
+import React, { useContext } from "react";
 import "./right_side_component.css";
 import { MongoSchema, NeoGraph, PostgresDataTable, RedisDataTable } from "./components";
 import { JsonData } from "json-edit-react";
 import { Neo4jQueryData, PostgresQueryData, RedisQueryData } from "./request";
+import { DbName } from "./enums";
+import { SelectedDbContext } from "./selected_db_context";
 
-export enum DbName {
-    postgres,
-    neo4j,
-    redis,
-    mongo,
-}
 
 /**
  * Creates the right side component for the UI.
@@ -35,30 +31,30 @@ export function RightSide({
     neoGraphData: Neo4jQueryData;
     redisData: RedisQueryData;
 }) {
-    const [selected, setSelected] = useState<DbName>(DbName.postgres);
+    const {selectedDb, setSelectedDb} = useContext(SelectedDbContext);
 
     // the html for the right side
     return (
         <div className="h-dvh bg-sky-100 w-full py-4 px-8">
             <div className="buttons-container">
-                <button className="btn py-2" onClick={() => setSelected(DbName.postgres)}>
+                <button className="btn py-2" onClick={() => setSelectedDb(DbName.postgres)}>
                     PostgreSQL
                 </button>
-                <button className="btn py-2" onClick={() => setSelected(DbName.mongo)}>
+                <button className="btn py-2" onClick={() => setSelectedDb(DbName.mongo)}>
                     MongoDB
                 </button>
-                <button className="btn py-2" onClick={() => setSelected(DbName.neo4j)}>
+                <button className="btn py-2" onClick={() => setSelectedDb(DbName.neo4j)}>
                     Neo4j
                 </button>
-                <button className="btn py-2" onClick={() => setSelected(DbName.redis)}>
+                <button className="btn py-2" onClick={() => setSelectedDb(DbName.redis)}>
                     Redis
                 </button>
             </div>
             <div className="h-full">
-                {selected === DbName.postgres && <PostgresDataTable data={postgresData} />}
-                {selected === DbName.mongo && <MongoSchema schema={mongoSchema} />}
-                {selected === DbName.neo4j && <NeoGraph data={neoGraphData} />}
-                {selected === DbName.redis && <RedisDataTable data={redisData} />}
+                {selectedDb === DbName.postgres && <PostgresDataTable data={postgresData} />}
+                {selectedDb === DbName.mongo && <MongoSchema schema={mongoSchema} />}
+                {selectedDb === DbName.neo4j && <NeoGraph data={neoGraphData} />}
+                {selectedDb === DbName.redis && <RedisDataTable data={redisData} />}
             </div>
         </div>
     );
