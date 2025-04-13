@@ -85,8 +85,8 @@ export async function getProductByName(name: string) {
  */
 export async function getTransaction(ti: number) {
   try {
-    let q = 'SELECT * FROM TRANSACTIONS WHERE transaction_id = ' + String(ti) + ';';
-    return await db.query(q);
+    let q = `SELECT * FROM TRANSACTIONS WHERE transaction_id = $1;`;
+    return await db.query(q, [ti]);
   } catch (error) {
     console.log('The transaction does not exist.');
     return new Promise((_, reject) => reject());
@@ -139,33 +139,56 @@ export async function getAllProducts(): Promise<Product[]> {
  */
 export async function getPostgresData(pid?: number) {
     try {
-        let q = `
-            SELECT 
-                p.product_id as productid,
-                p.name as name,
-                p.price as price,
-                COALESCE(json_agg(
-                    json_build_object(
-                        'transaction_id', t.transaction_id,
-                        'username', t.username
-                    )
-                ) FILTER (WHERE t.transaction_id IS NOT NULL), '[]') as transactions
-            FROM products p LEFT JOIN transactions t ON p.product_id = t.product_id`;
-        if (pid !== undefined) {
-            q += " WHERE p.product_id = " + String(pid);
-        }
-        q += ` GROUP BY p.product_id, p.name, p.price
-            ORDER BY p.product_id;`;
-        const result = await db.query(q);
+        if (pid) {
+            let q = `
+                SELECT 
+                    p.product_id as productid,
+                    p.name as name,
+                    p.price as price,
+                    COALESCE(json_agg(
+                        json_build_object(
+                            'transaction_id', t.transaction_id,
+                            'username', t.username
+                        )
+                    ) FILTER (WHERE t.transaction_id IS NOT NULL), '[]') as transactions
+                FROM products p LEFT JOIN transactions t ON p.product_id = t.product_id
+                WHERE p.product_id = $1
+                GROUP BY p.product_id, p.name, p.price
+                ORDER BY p.product_id;`;
+                const result = await db.query(q, [pid]);
         return result.rows.map(row => ({
             ProductID: row.productid,
             Name: row.name,
             Price: row.price,
             Transactions: row.transactions
         }));
+        } else {
+            let q = `
+                SELECT 
+                    p.product_id as productid,
+                    p.name as name,
+                    p.price as price,
+                    COALESCE(json_agg(
+                        json_build_object(
+                            'transaction_id', t.transaction_id,
+                            'username', t.username
+                        )
+                    ) FILTER (WHERE t.transaction_id IS NOT NULL), '[]') as transactions
+                FROM products p LEFT JOIN transactions t ON p.product_id = t.product_id
+                GROUP BY p.product_id, p.name, p.price
+                ORDER BY p.product_id;`;
+                const result = await db.query(q);
+            return result.rows.map(row => ({
+                ProductID: row.productid,
+                Name: row.name,
+                Price: row.price,
+                Transactions: row.transactions
+            }));
+        }
+        
     } catch (e) {
         console.log(`There was a problem querying products from PostgreSQL, ${e}`)
-        return new Promise((_, reject) => reject());
+        throw e;
     }
 }
 

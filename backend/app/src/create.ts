@@ -36,11 +36,10 @@ export async function newUser(ur: UserRecord, u: User) {
     }
 
     // compose the query in an acceptable manner to insert a user record
-    let userInsert: string = `INSERT INTO USERS 
-        VALUES ('${ur.username}', '${ur.firstName}', '${ur.lastName}');`;
+    let userInsert: string = `INSERT INTO USERS VALUES ($1, $2, $3);`;
     // do the actual query in the postgreSQL database
     return db
-        .query(userInsert)
+        .query(userInsert, [ur.username, ur.firstName, ur.lastName])
         .then(() => console.log(`Inserted ${ur.username} into USERS`))
         .catch((error) => {
             if (error.code === "23505") {
@@ -64,7 +63,7 @@ export async function newUser(ur: UserRecord, u: User) {
         .then(() =>
             // add the user to the neo4j session
             neoDriver
-                .executeQuery(`CREATE (u:User {username: "${ur.username}"})`)
+                .executeQuery(`CREATE (u:User {username: $username})`, {username: ur.username}, {database: "neo4j"})
                 .then(() => console.log(`Inserted ${ur.username} into neo4j`))
         )
         .catch((error) => {
@@ -92,12 +91,11 @@ export async function newProduct(pr: ProductRecord, p: Product) {
     p.product_id = curr_pid;
 
     // compose the query to insert a product
-    let productInsert: string = `INSERT INTO PRODUCTS 
-        VALUES ('${pr.productId}', '${parseFloat(pr.price.toFixed(2))}', '${pr.name}');`;
+    let productInsert: string = `INSERT INTO PRODUCTS VALUES ($1, $2, $3);`;
 
     // execute the query
     return db
-        .query(productInsert)
+        .query(productInsert, [pr.productId, parseFloat(pr.price.toFixed(2)), pr.name])
         .then(() => console.log(`Inserted ${pr.productId} into PRODUCTS.`))
         .catch(async (err) => {
             console.log("Postgres rejected query: ", productInsert, "\nwith error: ", err);
@@ -121,7 +119,7 @@ export async function newProduct(pr: ProductRecord, p: Product) {
                     product_id: pr.productId,
                     name: pr.name,
                     price: pr.price,
-                })
+                }, {database: "neo4j"})
                 .then(() => console.log(`Inserted ${pr.productId} into neo4j`))
                 .catch((error) => {
                     console.log("Neo4j rejected query with error: ", error);
@@ -148,13 +146,11 @@ export async function newTransaction(t: TransactionRecord) {
     t.transactionId = curr_tid;
 
     // compose the query in an acceptable manner to insert a transaction
-    let transactionInsert: string = `INSERT INTO TRANSACTIONS VALUES ('${t.transactionId}',
-            '${t.username}', '${t.productId}', '${t.cardNum}', '${t.address}', '${t.city}', 
-            '${t.state}', '${t.zip}');`;
+    let transactionInsert: string = `INSERT INTO TRANSACTIONS VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`;
 
     // execute the query
     return db
-        .query(transactionInsert)
+        .query(transactionInsert, [t.transactionId, t.username, t.productId, t.cardNum, t.address, t.city, t.state, t.zip])
         .then(() => console.log(`Inserted ${curr_tid} into TRANSACTIONS`))
         .catch(async (error) => {
             if (error.code) {
@@ -202,7 +198,7 @@ export async function newTransaction(t: TransactionRecord) {
                     `MATCH (u:User {username: $username}) 
                 MATCH (p:Product {product_id: $product_id}) 
                 CREATE (u)-[:BOUGHT]->(p)`,
-                    { username: t.username, product_id: t.productId }
+                    { username: t.username, product_id: t.productId }, {database: "neo4j"}
                 )
                 .then(() => console.log(`Made transaction between ${t.username} and ${t.productId} into neo4j`))
         )
