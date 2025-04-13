@@ -93,6 +93,8 @@ const TransactionPage = () => {
       console.error('Error submitting transaction:', error);
       setMessage('An error occurred. Please try again.');
     }
+
+      setMessage(`Successfully added transaction!`);
   };
 
   return (

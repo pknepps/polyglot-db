@@ -100,6 +100,8 @@ export default function ReviewPage() {
       console.error('Error submitting rating:', error);
       setMessage('An error occurred. Please try again.');
     }
+
+    setMessage("Succesfully added product review.")
   };
 
   return (

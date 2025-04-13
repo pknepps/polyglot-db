@@ -23,6 +23,8 @@ export default function GenerateRandomPage() {
     const productCount = parseInt(productQuantity.trim() || "0");
     const transactionCount = parseInt(transactionQuantity.trim() || "0");
 
+    setMessage("Generating data...")
+
     try {
       if (userCount > 0) {
         await generateRandomUsers(userCount);

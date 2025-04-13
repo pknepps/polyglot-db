@@ -2,19 +2,19 @@
 /**
  * This is a client component that allows the user to create a new user.
  * It includes a form with fields for the username, first name, and last name.
- * 
+ *
  * @author Dalton Rogers
  * @version 4/3/25
  */
 
 import { useState } from "react";
 import { checkUsernameAvailability, createUser } from "@/app/request";
-import { Card } from '@/app/components';
+import { Card } from "@/app/components";
 import "@/app/globals.css";
 
 /**
  * Used to create a new user.
- * 
+ *
  * @returns A form that allows the user to create a new user.
  */
 export default function CreateUserPage() {
@@ -66,7 +66,7 @@ export default function CreateUserPage() {
 
         try {
             const response = await createUser(userData);
-            setMessage("User created successfully!");
+            setMessage(`User ${username} created successfully!`);
             setUsername("");
             setFirstname("");
             setLastname("");
@@ -124,10 +124,7 @@ export default function CreateUserPage() {
                         required
                     />
                 </div>
-                <button
-                    type="submit"
-                    className="btn2 btn2-blue"
-                >
+                <button type="submit" className="btn2 btn2-blue">
                     Submit
                 </button>
             </form>
