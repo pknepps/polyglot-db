@@ -133,25 +133,34 @@ export async function randReviews(n: number): Promise<
  */
 export async function randTransaction(n: number): Promise<TransactionRecord[]> {
     const transactions: TransactionRecord[] = [];
+    let usernames: { username: string }[]
+    let products: { product_id: number }[]
     try {
-        const usernames: { username: string }[] = await getUserNames();
-        const products: { product_id: number }[] = await getProductIDs();
-        for (let i = 0; i < n; i++) {
-            const username: string = usernames[Math.floor(Math.random() * usernames.length)].username;
-            const productId: number = products[Math.floor(Math.random() * products.length)].product_id;
-            transactions.push({
-                transactionId: 0,
-                username,
-                productId,
-                cardNum: parseInt(faker.finance.creditCardNumber("################")),
-                address: sanitize(faker.location.streetAddress()),
-                city: sanitize(faker.location.city()),
-                state: sanitize(faker.location.state({ abbreviated: true })),
-                zip: parseInt(faker.location.zipCode("#####")),
-            });
-        }
+        usernames = await getUserNames();
+        products = await getProductIDs();
     } catch (error) {
         console.log("Postgres rejected query with error: ", error);
+        throw error;
+    }
+    if (usernames.length == 0) {
+        throw new Error("No users available to generate transactions");
+    }
+    if (products.length == 0) {
+        throw new Error("No products available to generate transactions");
+    }
+    for (let i = 0; i < n; i++) {
+        const username: string = usernames[Math.floor(Math.random() * usernames.length)].username;
+        const productId: number = products[Math.floor(Math.random() * products.length)].product_id;
+        transactions.push({
+            transactionId: 0,
+            username,
+            productId,
+            cardNum: parseInt(faker.finance.creditCardNumber("################")),
+            address: sanitize(faker.location.streetAddress()),
+            city: sanitize(faker.location.city()),
+            state: sanitize(faker.location.state({ abbreviated: true })),
+            zip: parseInt(faker.location.zipCode("#####")),
+        });
     }
     return transactions;
 }
