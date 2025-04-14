@@ -3,6 +3,8 @@ import { redis } from "./index";
 import { Product, ProductObject } from "./interfaces";
 import { recommend_from_product } from "./recommend";
 
+const CACHE_TIME = 45;
+
 /**
  * Copies the product representing the product id from MongoDB into the Redis 
  * cache. Also copies all recommended products of that product into the cache.
@@ -19,7 +21,7 @@ export async function pullIntoCache(productId: number, mongoDB: Db) {
             async (productPart: Partial<Product> & Pick<Product, "product_id">) => {
                 const product: Product = await mongoDB.collection("products")
                     .findOne({ product_id: productPart.product_id }) as ProductObject as Product;
-                redis.setEx("" + productPart.product_id, 600, JSON.stringify(product));
+                redis.setEx("" + productPart.product_id, CACHE_TIME, JSON.stringify(product));
         });
     } catch (e) {
         console.error(`An error occured when trying to pull product ${productId} into cache\n${e}`);
