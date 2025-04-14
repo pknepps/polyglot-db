@@ -87,6 +87,11 @@ export function Header() {
         const value = e.target.value;
         setSearchInput(value);
         setSearchQuery(value);
+
+        // redirect to home page if the search bar is empty
+        if (value.trim() === "") {
+            router.push("/"); 
+        }
     };
 
     // this is what happens when the user clicks the home button
