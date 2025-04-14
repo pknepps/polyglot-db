@@ -186,7 +186,13 @@ const TransactionPage = () => {
             type="text"
             id="state"
             value={state}
-            onChange={(e) => setState(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value.toUpperCase();
+              if (value.length <= 2) {
+                setState(value); 
+              }
+            }}
+            maxLength={2}
             className="mt-2 block w-full rounded-lg border-gray-200 bg-gray-50 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg"
             placeholder="Enter state"
             required

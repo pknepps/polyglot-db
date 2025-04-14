@@ -28,9 +28,14 @@ export default function CreateUserPage() {
     // check if the username is available
     const handleUsernameChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
+        if (value.length >= 50) {
+            setMessage("Username must be less than 50 characters.");
+            return;
+        }
         setUsername(value);
 
         if (value.trim() === "") {
+            setUsername("");
             setIsUsernameAvailable(true);
             setMessage("");
             return;
@@ -54,6 +59,11 @@ export default function CreateUserPage() {
 
         if (!isUsernameAvailable) {
             setMessage("Please choose a different username.");
+            return;
+        }
+
+        if (username.length >= 50 || firstName.length >= 50 || lastName.length >= 50) {
+            setMessage("All fields must be less than 50 characters.");
             return;
         }
 
@@ -91,6 +101,7 @@ export default function CreateUserPage() {
                         id="username"
                         value={username}
                         onChange={handleUsernameChange}
+                        maxLength={50}
                         className="mt-2 block w-full rounded-lg border-gray-200 bg-gray-50 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg"
                         placeholder="Enter username"
                         required
@@ -104,7 +115,10 @@ export default function CreateUserPage() {
                         type="text"
                         id="firstname"
                         value={firstName}
-                        onChange={(e) => setFirstname(e.target.value)}
+                        onChange={(e) => {
+                            if (e.target.value.length < 50) setFirstname(e.target.value);
+                        }}
+                        maxLength={50}
                         className="mt-2 block w-full rounded-lg border-gray-200 bg-gray-50 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg"
                         placeholder="Enter first name"
                         required
@@ -118,7 +132,10 @@ export default function CreateUserPage() {
                         type="text"
                         id="lastname"
                         value={lastName}
-                        onChange={(e) => setLastname(e.target.value)}
+                        onChange={(e) => {
+                            if (e.target.value.length < 50) setLastname(e.target.value);
+                        }}
+                        maxLength={50}
                         className="mt-2 block w-full rounded-lg border-gray-200 bg-gray-50 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg"
                         placeholder="Enter last name"
                         required
