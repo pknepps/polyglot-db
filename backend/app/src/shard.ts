@@ -76,6 +76,9 @@ export async function setMongoAddress(id: string, address: string) {
 }
 
 export async function registerDb(address: string): Promise<void> {
+    if (mongoConnections.has(address)) {
+        return;
+    }
     try {
         mongoConnections.set(address, await connectMongo(address));
         dbMap.mongoDB.set(address, 0); // TODO this should probably be how many things are in the db.

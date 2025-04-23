@@ -1,7 +1,6 @@
 use reqwest::Client;
 use serde_json::{json, Value};
 use sqlx::{query, PgPool};
-use std::env;
 
 /// Will create the postgres schema for the Docker container.
 ///
@@ -58,21 +57,12 @@ async fn post_schema(password: &str) -> Result<(), sqlx::Error> {
     Ok(())
 }
 
-pub async fn init_db() -> Result<String, String> {
-    let backend_addr = env::var("BACKEND_ADDR").unwrap();
-    let ip_addr = reqwest::get("icanhazip.com")
-        .await
-        .unwrap()
-        .text()
-        .await
-        .unwrap();
-    // let my_local_ip = local_ip().unwrap();
-
+pub async fn init_db(backend_addr: &str, ip_addr: &str) -> Result<String, String> {
     let json_data = json!({
         "ipAddr": ip_addr
     });
     let backend_response: Value  = Client::new()
-        .put(backend_addr + "/api/add-db")
+        .put(backend_addr.to_owned() + ":8000/api/add-db")
         .json(&json_data)
         .send()
         .await
