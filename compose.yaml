@@ -1,0 +1,25 @@
+services:
+  rust_backend:
+    build: ./rust_backend
+    environment:
+      - RUST_BACKTRACE=1
+      - BACKEND_ADDR=${BACKEND_ADDR}
+      - DB_ADDR=${DB_ADDR}
+    depends_on:
+      mongo:
+        condition: service_healthy
+  mongo:
+    image: mongo
+    secrets:
+      - mongo_pass
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_pass
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --username root --password $(cat /run/secrets/mongo_pass) --quiet
+  
+secrets:
+  mongo_pass:
+    file: ./backend/app/MONGODB_PASSWORD
