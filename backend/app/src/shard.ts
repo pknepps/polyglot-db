@@ -16,9 +16,6 @@ const dbMap: DBMap = {
 // caches connections to databases
 export const mongoConnections: Map<string, Db> = new Map();
 
-// TODO: hardcoded addresses, we need to find a way to add them.
-dbMap.mongoDB.set("pknepps.net", 0);
-
 export async function makeConnections() {
     for (let [address, _] of dbMap.mongoDB) {
         try {
@@ -76,4 +73,14 @@ export async function getMongoAddress(id: string): Promise<string | null> {
 
 export async function setMongoAddress(id: string, address: string) {
     await redis.set(id, address);
+}
+
+export async function registerDb(address: string): Promise<void> {
+    try {
+        mongoConnections.set(address, await connectMongo(address));
+        dbMap.mongoDB.set(address, 0); // TODO this should probably be how many things are in the db.
+    } catch (e) {
+        console.error(`Could not connect to MongoDB at ${address}: `, e)
+        throw e;
+    }
 }

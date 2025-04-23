@@ -35,6 +35,7 @@ import {
   randTransaction,
   randUser,
 } from './generators';
+import { registerDb } from './shard';
 
 /**
  * Creates an Express router, which is used to define and handle API routes for the
@@ -65,6 +66,7 @@ export function createRouter() {
   apiGetMongoSchema(router);
   apiGetRedisData(router);
   apiGetProductByName(router);
+  apiAddDb(router);
   return router;
 }
 
@@ -539,4 +541,28 @@ function apiGenerateReviews(router: Router) {
                 res.status(400).send("An excpetion occurred when generating reviews/ratings: " + e);
             });
     });
+}
+
+/**
+ * Adds a route to connect a database to the backend.
+ *
+ * @param router The router to add the request to.
+ */
+function apiAddDb(router: Router) {
+  router.post("/add-db", async (req: Request, res: Response) => {
+      try {
+          const { ipAddr } = req.body;
+          try {
+            await registerDb(ipAddr);
+            const successMessage = `Successfully added database ${ipAddr} to the sharding algorithm.`;
+            console.log(successMessage);
+            res.status(200).send({success: successMessage});
+          } catch (e) {
+            res.status(400).send({error: `Unable to add database to the backend: ${e}`});
+          }
+      } catch (e) {
+          console.log(e);
+          res.status(400).send("Invalid parameters.\n");
+      }
+  });
 }

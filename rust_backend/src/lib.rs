@@ -1,76 +1,90 @@
-use std::process::Command;
-mod setup;
-mod teardown;
-pub use crate::setup::setup;
-pub use crate::teardown::teardown;
+use reqwest::Client;
+use serde_json::{json, Value};
+use sqlx::{query, PgPool};
+use std::env;
 
-/// #Lib
-/// This module is where we define our Enums used throughout the program, such
-/// as Action, PerformOn, and OS. We also have a start method which checks what
-/// the user's OS is and run_command is responsible for running the various
-/// Docker commands.
+/// Will create the postgres schema for the Docker container.
 ///
-/// **Author**: Preston Knepper
-/// **Version**: 2/12/25
+/// **Param** password: The password for the Postgres user.
+/// **Return**: Either nothing, or an error if one of the queries doesn't work.
+async fn post_schema(password: &str) -> Result<(), sqlx::Error> {
+    let database_url = format!("postgres://postgres:{}@localhost:5433/", password);
 
-/// The Action enum is responsible for classifying what we are performing, in
-/// this case either Setup or Teardown. PerformOn indicates which systems the
-/// Action will be performed on.
-pub enum Action {
-    Setup(PerformOn),
-    Teardown(PerformOn),
-}
+    println!("\nSetting PostgreSQL schema:");
+    let pool = PgPool::connect(&database_url).await?;
+    println!("Connected to Postgres...\n");
 
-/// The PerformOn enum is responsible for classifying the database system we
-/// will be performing the Action on. Can either be all of them, or one of
-/// them at a time.
-pub enum PerformOn {
-    All,
-    Postgres,
-    MongoDB,
-    Neo4j,
-}
-
-/// The OS enum is used to classify the type of Operating System being used. It
-/// implements both Clone and Copy traits. The OS has either a Windows or Unix
-/// variant.
-#[derive(Clone, Copy)]
-pub enum OS {
-    Windows,
-    Unix,
-}
-
-/// This will determine the OS of the user and call the proper setup or
-/// teardown.
-///
-/// **Param** action: Either Setup or Teardown.
-pub fn start(action: Action) {
-    // checks what os is being used and calls the appropriate setup
-    if cfg!(target_os = "windows") {
-        match action {
-            Action::Setup(perform_on) => setup(perform_on, OS::Windows),
-            Action::Teardown(perform_on) => teardown(perform_on, OS::Windows),
-        }
-    } else {
-        // setup and teardown for unix
-        match action {
-            Action::Setup(perform_on) => setup(perform_on, OS::Unix),
-            Action::Teardown(perform_on) => teardown(perform_on, OS::Unix),
-        }
-    }
-}
-
-/// Takes a string and a operating system, uses this information to run the
-/// command line for the correct operating system.
-///
-/// **Param** command: The command for the command line.
-/// **Param** os: The OS variant.
-/// **Return**: Will return nothing if all goes well, otherwise throws the
-/// output.
-fn run_command(command: &str, os: OS) -> std::io::Result<()> {
-    let _child = match os {
-        OS::Windows => Command::new("cmd").arg("/C").arg(command).status()?,
-        OS::Unix => Command::new("sh").arg("-c").arg(command).status()?,
-    };
+    // drop previous tables
+    query("DROP TABLE IF EXISTS TRANSACTIONS;")
+        .execute(&pool)
+        .await?;
+    query("DROP TABLE IF EXISTS PRODUCTS;")
+        .execute(&pool)
+        .await?;
+    query("DROP TABLE IF EXISTS USERS;").execute(&pool).await?;
+    // create necessary tables
+    query(
+        "CREATE TABLE USERS (
+                    username VARCHAR(50) PRIMARY KEY,
+                    first_name VARCHAR(50),
+                    last_name VARCHAR(50)
+        );",
+    )
+    .execute(&pool)
+    .await?;
+    query(
+        "CREATE TABLE PRODUCTS (
+                    product_id INT PRIMARY KEY,
+                    price float(2),
+                    name VARCHAR(255)
+        );",
+    )
+    .execute(&pool)
+    .await?;
+    query(
+        "CREATE TABLE TRANSACTIONS (
+                    transaction_id INT PRIMARY KEY, 
+                    username VARCHAR(50) REFERENCES USERS,
+                    product_id INT REFERENCES PRODUCTS,
+                    card_num BIGINT,
+                    address_line VARCHAR(100),
+                    city VARCHAR(35),
+                    state CHAR(2),
+                    zip INT
+        );",
+    )
+    .execute(&pool)
+    .await?;
     Ok(())
+}
+
+pub async fn init_db() -> Result<String, String> {
+    let backend_addr = env::var("BACKEND_ADDR").unwrap();
+    let ip_addr = reqwest::get("icanhazip.com")
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    // let my_local_ip = local_ip().unwrap();
+
+    let json_data = json!({
+        "ipAddr": ip_addr
+    });
+    let backend_response: Value  = Client::new()
+        .put(backend_addr + "/api/add-db")
+        .json(&json_data)
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+
+    if let Some(error) = backend_response.get("error") {
+        return Err(error.to_string());
+    } else if let Some(success) = backend_response.get("success") {
+        return Ok(success.to_string());
+    }
+    return Err("backend was poorly coded, no response or success".to_owned());
 }
