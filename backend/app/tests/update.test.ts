@@ -1,6 +1,9 @@
 import { updateUser, updateProduct, addReview, addRating } from "../src/update";
 import { mongoConnections, getMongoAddress } from "../src/shard";
 
+/**
+ * Set up Jest to mock the MongoDB connection and address retrieval functions.
+ */
 jest.mock("../src/shard", () => ({
     mongoConnections: {
         get: jest.fn(),
@@ -11,6 +14,9 @@ jest.mock("../src/shard", () => ({
 describe("update.ts", () => {
     let mockDb: any;
 
+    /**
+     * Initialize the mock database connection before each test.
+     */
     beforeEach(() => {
         mockDb = {
             collection: jest.fn().mockReturnThis(),
@@ -19,6 +25,9 @@ describe("update.ts", () => {
         (mongoConnections.get as jest.Mock).mockReturnValue(mockDb);
     });
 
+    /**
+     * Clear all mocks after each test to ensure no state is shared between tests.
+     */
     afterEach(() => {
         jest.clearAllMocks();
     });
