@@ -64,6 +64,7 @@ export async function connectMongo(address: string): Promise<Db> {
             await client.connect();
         } catch (e) {
             console.log("There was an error making the connection to mongodb: ", e);
+            throw e;
         }
 
         // return the desired database

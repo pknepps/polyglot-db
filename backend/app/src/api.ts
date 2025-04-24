@@ -7,35 +7,23 @@
  */
 
 // these are the required imports
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response } from "express";
 import {
-  getProduct,
-  getUser,
-  getProducts,
-  getAllProducts,
-  getNeoGraph,
-  getPostgresData,
-  getRedisData,
-  getProductByName
-} from './get';
-import { newProduct, newUser, newTransaction } from './create';
-import {
-  Product,
-  ProductRecord,
-  User,
-  UserRecord,
-  TransactionRecord,
-} from './interfaces';
-import { addReview, addRating, updateProduct, updateUser } from './update';
-import { recommend_from_product } from './recommend';
-import {
-  randProduct,
-  randRatings,
-  randReviews,
-  randTransaction,
-  randUser,
-} from './generators';
-import { registerDb } from './shard';
+    getProduct,
+    getUser,
+    getProducts,
+    getAllProducts,
+    getNeoGraph,
+    getPostgresData,
+    getRedisData,
+    getProductByName,
+} from "./get";
+import { newProduct, newUser, newTransaction } from "./create";
+import { Product, ProductRecord, User, UserRecord, TransactionRecord } from "./interfaces";
+import { addReview, addRating, updateProduct, updateUser } from "./update";
+import { recommend_from_product } from "./recommend";
+import { randProduct, randRatings, randReviews, randTransaction, randUser } from "./generators";
+import { registerDb } from "./shard";
 
 /**
  * Creates an Express router, which is used to define and handle API routes for the
@@ -44,30 +32,30 @@ import { registerDb } from './shard';
  * @returns The Express Router.
  */
 export function createRouter() {
-  const router = Router();
-  apiGetProduct(router);
-  apiPostProduct(router);
-  apiPutProduct(router);
-  apiGetUser(router);
-  apiPostUser(router);
-  apiPutUser(router);
-  apiPostTransaction(router);
-  apiPostReview(router);
-  apiPostRating(router);
-  apiGetRecommendation(router);
-  apiGetProducts(router);
-  apiGenerateProducts(router);
-  apiGenerateUsers(router);
-  apiGenerateTransactions(router);
-  apiGenerateReviews(router);
-  apiGetAllProducts(router);
-  apiGetNeoGraph(router);
-  apiGetPostgresData(router);
-  apiGetMongoSchema(router);
-  apiGetRedisData(router);
-  apiGetProductByName(router);
-  apiAddDb(router);
-  return router;
+    const router = Router();
+    apiGetProduct(router);
+    apiPostProduct(router);
+    apiPutProduct(router);
+    apiGetUser(router);
+    apiPostUser(router);
+    apiPutUser(router);
+    apiPostTransaction(router);
+    apiPostReview(router);
+    apiPostRating(router);
+    apiGetRecommendation(router);
+    apiGetProducts(router);
+    apiGenerateProducts(router);
+    apiGenerateUsers(router);
+    apiGenerateTransactions(router);
+    apiGenerateReviews(router);
+    apiGetAllProducts(router);
+    apiGetNeoGraph(router);
+    apiGetPostgresData(router);
+    apiGetMongoSchema(router);
+    apiGetRedisData(router);
+    apiGetProductByName(router);
+    apiAddDb(router);
+    return router;
 }
 
 /**
@@ -76,13 +64,13 @@ export function createRouter() {
  * @param router The Express router to add the request to.
  */
 function apiGetProduct(router: Router) {
-  router.get('/product/:id', (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-    console.log(`Received GET request for product ${id}`);
-    getProduct(id)
-      .then((product) => res.json(product))
-      .catch((_) => res.status(404).send('Not Found.\n'));
-  });
+    router.get("/product/:id", (req: Request, res: Response) => {
+        const id = Number(req.params.id);
+        console.log(`Received GET request for product ${id}`);
+        getProduct(id)
+            .then((product) => res.json(product))
+            .catch((_) => res.status(404).send("Not Found.\n"));
+    });
 }
 
 /**
@@ -91,22 +79,22 @@ function apiGetProduct(router: Router) {
  * @param router The Express router to add the request to.
  */
 function apiGetProductByName(router: Router) {
-  router.get('/product/name/:name', async (req: Request, res: Response) => {
-      const encodedName = req.params.name;
-      const name = decodeURIComponent(encodedName); // decode the name
-      console.log(`Received GET request for products with name "${name}"`);
-      try {
-          const product = await getProductByName(name);
-          if (product) {
-              res.json(product);
-          } else {
-              res.status(404).send(`Product with name "${name}" not found.`);
-          }
-      } catch (error) {
-          console.error(`Error fetching product by name: ${error}`);
-          res.status(500).send("Internal Server Error");
-      }
-  });
+    router.get("/product/name/:name", async (req: Request, res: Response) => {
+        const encodedName = req.params.name;
+        const name = decodeURIComponent(encodedName); // decode the name
+        console.log(`Received GET request for products with name "${name}"`);
+        try {
+            const product = await getProductByName(name);
+            if (product) {
+                res.json(product);
+            } else {
+                res.status(404).send(`Product with name "${name}" not found.`);
+            }
+        } catch (error) {
+            console.error(`Error fetching product by name: ${error}`);
+            res.status(500).send("Internal Server Error");
+        }
+    });
 }
 
 /**
@@ -115,16 +103,16 @@ function apiGetProductByName(router: Router) {
  * @param router The Express router to add the request to.
  */
 function apiGetNeoGraph(router: Router) {
-  router.get('/neo/graph/:pid?', async (req: Request, res: Response) => {
-    const pid = req.params.pid ? Number(req.params.pid) : undefined;
-    try {
-      const graph = await getNeoGraph(pid);
-      res.json(graph);
-    } catch (error) {
-      console.error('Error fetching Neo4j graph data:', error);
-      res.status(500).send('Internal Server Error');
-    }
-  });
+    router.get("/neo/graph/:pid?", async (req: Request, res: Response) => {
+        const pid = req.params.pid ? Number(req.params.pid) : undefined;
+        try {
+            const graph = await getNeoGraph(pid);
+            res.json(graph);
+        } catch (error) {
+            console.error("Error fetching Neo4j graph data:", error);
+            res.status(500).send("Internal Server Error");
+        }
+    });
 }
 
 /**
@@ -133,14 +121,14 @@ function apiGetNeoGraph(router: Router) {
  * @param router The Express router to add the request to.
  */
 function apiGetRedisData(router: Router) {
-    router.get('/redis/:pid?', async (req: Request, res: Response) => {
+    router.get("/redis/:pid?", async (req: Request, res: Response) => {
         const pid = req.params.pid ? Number(req.params.pid) : undefined;
         try {
             const data = await getRedisData(pid);
             res.json(data);
         } catch (error) {
-            console.error('Error fetching  graph data:', error);
-            res.status(500).send('Internal Server Error');
+            console.error("Error fetching  graph data:", error);
+            res.status(500).send("Internal Server Error");
         }
     });
 }
@@ -151,19 +139,18 @@ function apiGetRedisData(router: Router) {
  * @param router The Express router to add the request to.
  */
 function apiGetMongoSchema(router: Router) {
-  
-  router.get('/mongodb/schema', async (req: Request, res: Response) => {
-    try {
-      const schema = await getAllProducts();
-      if (schema === null) {
-        throw new Error(`Could not fetch schema. Schema is null.`);
-      }
-      res.json(schema);
-    } catch (error) {
-      console.error('Error fetching mongodb graph data:', error);
-      res.status(500).send('Internal Server Error');
-    }
-  });
+    router.get("/mongodb/schema", async (req: Request, res: Response) => {
+        try {
+            const schema = await getAllProducts();
+            if (schema === null) {
+                throw new Error(`Could not fetch schema. Schema is null.`);
+            }
+            res.json(schema);
+        } catch (error) {
+            console.error("Error fetching mongodb graph data:", error);
+            res.status(500).send("Internal Server Error");
+        }
+    });
 }
 
 /**
@@ -172,16 +159,16 @@ function apiGetMongoSchema(router: Router) {
  * @param router The Express router to add the request to.
  */
 function apiGetPostgresData(router: Router) {
-  router.get('/postgres/:pid?', async (req: Request, res: Response) => {
-    const pid = req.params.pid ? Number(req.params.pid) : undefined;
-    try {
-      const data = await getPostgresData(pid);
-      res.json(data);
-    } catch (error) {
-      console.error('Error fetching PostgreSQL data:', error);
-      res.status(500).send('Internal Server Error');
-    }
-  });
+    router.get("/postgres/:pid?", async (req: Request, res: Response) => {
+        const pid = req.params.pid ? Number(req.params.pid) : undefined;
+        try {
+            const data = await getPostgresData(pid);
+            res.json(data);
+        } catch (error) {
+            console.error("Error fetching PostgreSQL data:", error);
+            res.status(500).send("Internal Server Error");
+        }
+    });
 }
 
 /**
@@ -191,13 +178,13 @@ function apiGetPostgresData(router: Router) {
  * @param router The Express Router to add the request to.
  */
 function apiGetUser(router: Router) {
-  router.get('/user/:username', (req: Request, res: Response) => {
-    const username = String(req.params.username);
-    console.log(`Received GET request for user ${username}`);
-    getUser(username)
-      .then((user) => res.json(user))
-      .catch((_) => res.status(404).json({ exists: false}));
-  });
+    router.get("/user/:username", (req: Request, res: Response) => {
+        const username = String(req.params.username);
+        console.log(`Received GET request for user ${username}`);
+        getUser(username)
+            .then((user) => res.json(user))
+            .catch((_) => res.status(404).json({ exists: false }));
+    });
 }
 
 /**
@@ -206,35 +193,35 @@ function apiGetUser(router: Router) {
  * @param router The router to add the request to.
  */
 function apiPostProduct(router: Router) {
-  router.post("/product/", (req: Request, res: Response) => {
-    try {
-      const product_data = req.body;
-      console.log(`Received POST request for products: ${product_data}`);
-      const { name, price } = product_data;
-      const product: Product = {
-        product_id: 0,
-        name,
-        price: Number(price),
-        ratings: [],
-        reviews: [],
-      };
+    router.post("/product/", (req: Request, res: Response) => {
+        try {
+            const product_data = req.body;
+            console.log(`Received POST request for products: ${product_data}`);
+            const { name, price } = product_data;
+            const product: Product = {
+                product_id: 0,
+                name,
+                price: Number(price),
+                ratings: [],
+                reviews: [],
+            };
 
-      const record: ProductRecord = {
-        productId: 0,
-        name,
-        price,
-      };
+            const record: ProductRecord = {
+                productId: 0,
+                name,
+                price,
+            };
 
-      newProduct(record, product);
-      res.status(200).json({
-        message: "Product added successfully.",
-        product: newProduct,
+            newProduct(record, product);
+            res.status(200).json({
+                message: "Product added successfully.",
+                product: newProduct,
+            });
+        } catch (e) {
+            console.log(e);
+            res.status(400).json("Invalid parameters\n");
+        }
     });
-    } catch (e) {
-      console.log(e);
-      res.status(400).json('Invalid parameters\n');
-    }
-  });
 }
 
 /**
@@ -243,19 +230,19 @@ function apiPostProduct(router: Router) {
  * @param router The router to add the request to.
  */
 function apiPutProduct(router: Router) {
-  router.put('/product/:id', (req: Request, res: Response) => {
-    try {
-      const product_data = req.body;
-      const id = Number(req.params.id);
-      console.log(`Received PUT request for products: ${product_data}`);
-      product_data['product_id'] = id;
-      updateProduct(product_data);
-      res.status(200).send('Product updated.\n');
-    } catch (e) {
-      console.log(e);
-      res.status(400).send('Invalid parameters or product_id.\n');
-    }
-  });
+    router.put("/product/:id", (req: Request, res: Response) => {
+        try {
+            const product_data = req.body;
+            const id = Number(req.params.id);
+            console.log(`Received PUT request for products: ${product_data}`);
+            product_data["product_id"] = id;
+            updateProduct(product_data);
+            res.status(200).send("Product updated.\n");
+        } catch (e) {
+            console.log(e);
+            res.status(400).send("Invalid parameters or product_id.\n");
+        }
+    });
 }
 
 /**
@@ -264,36 +251,36 @@ function apiPutProduct(router: Router) {
  * @param router The router to add the request to.
  */
 function apiPostUser(router: Router) {
-  router.post('/user/', (req: Request, res: Response) => {
-    try {
-      const { username, first, last } = req.body;
-      
-      const user: User = {
-        username,
-        firstName: first,
-        lastName: last,
-        middleName: '',
-        addresses: [],
-        payments: [],
-        transactions: [],
-        ratings: [],
-        reviews: [],
-      };
-      const userRecord: UserRecord = {
-        username,
-        firstName: first,
-        lastName: last,
-      };
-      newUser(userRecord, user);
-      res.status(200).json({
-        message: "User added successfully.",
-        product: newUser,
+    router.post("/user/", (req: Request, res: Response) => {
+        try {
+            const { username, first, last } = req.body;
+
+            const user: User = {
+                username,
+                firstName: first,
+                lastName: last,
+                middleName: "",
+                addresses: [],
+                payments: [],
+                transactions: [],
+                ratings: [],
+                reviews: [],
+            };
+            const userRecord: UserRecord = {
+                username,
+                firstName: first,
+                lastName: last,
+            };
+            newUser(userRecord, user);
+            res.status(200).json({
+                message: "User added successfully.",
+                product: newUser,
+            });
+        } catch (e) {
+            console.log(e);
+            res.status(400).send("Invalid parameters.\n");
+        }
     });
-    } catch (e) {
-      console.log(e);
-      res.status(400).send('Invalid parameters.\n');
-    }
-  });
 }
 
 /**
@@ -302,35 +289,32 @@ function apiPostUser(router: Router) {
  * @param router The router to add the request to.
  */
 function apiPostTransaction(router: Router) {
-  router.post('/transaction/', (req: Request, res: Response) => {
-    try {
-      const { username, productId, cardNum, address, city, state, zip } =
-        req.body;
-      console.log(
-        `Received POST request for transaction ${productId}, and ${username}`
-      );
+    router.post("/transaction/", (req: Request, res: Response) => {
+        try {
+            const { username, productId, cardNum, address, city, state, zip } = req.body;
+            console.log(`Received POST request for transaction ${productId}, and ${username}`);
 
-      const transaction: TransactionRecord = {
-        transactionId: 0,
-        username,
-        productId: Number(productId),
-        cardNum: Number(cardNum),
-        address,
-        city,
-        state,
-        zip: Number(zip),
-      };
+            const transaction: TransactionRecord = {
+                transactionId: 0,
+                username,
+                productId: Number(productId),
+                cardNum: Number(cardNum),
+                address,
+                city,
+                state,
+                zip: Number(zip),
+            };
 
-      newTransaction(transaction);
-      res.status(200).json({
-        message: "Transaction added successfully.",
-        product: newTransaction,
+            newTransaction(transaction);
+            res.status(200).json({
+                message: "Transaction added successfully.",
+                product: newTransaction,
+            });
+        } catch (e) {
+            console.log(e);
+            res.status(400).send("Invalid parameters\n");
+        }
     });
-    } catch (e) {
-      console.log(e);
-      res.status(400).send('Invalid parameters\n');
-    }
-  });
 }
 
 /**
@@ -339,17 +323,17 @@ function apiPostTransaction(router: Router) {
  * @param router The router to add the request to.
  */
 function apiPostReview(router: Router) {
-  router.post('/review/', (req: Request, res: Response) => {
-    try {
-      const data = req.body;
-      console.log(`Received POST request for review: ${JSON.stringify(data)}`);
-      addReview(data);
-      res.status(200).send('Review added\n');
-    } catch (e) {
-      console.log(e);
-      res.status(400).send('Invalid parameters\n');
-    }
-  });
+    router.post("/review/", (req: Request, res: Response) => {
+        try {
+            const data = req.body;
+            console.log(`Received POST request for review: ${JSON.stringify(data)}`);
+            addReview(data);
+            res.status(200).send("Review added\n");
+        } catch (e) {
+            console.log(e);
+            res.status(400).send("Invalid parameters\n");
+        }
+    });
 }
 
 /**
@@ -358,17 +342,17 @@ function apiPostReview(router: Router) {
  * @param router The router to add the request to.
  */
 function apiPostRating(router: Router) {
-  router.post('/rating/', (req: Request, res: Response) => {
-    try {
-      const data = req.body;
-      console.log(`Received POST request for rating ${JSON.stringify(data)}`);
-      addRating(data);
-      res.status(200).send('Rating added\n');
-    } catch (e) {
-      console.log(e);
-      res.status(400).send('Invalid parameters\n');
-    }
-  });
+    router.post("/rating/", (req: Request, res: Response) => {
+        try {
+            const data = req.body;
+            console.log(`Received POST request for rating ${JSON.stringify(data)}`);
+            addRating(data);
+            res.status(200).send("Rating added\n");
+        } catch (e) {
+            console.log(e);
+            res.status(400).send("Invalid parameters\n");
+        }
+    });
 }
 
 /**
@@ -377,15 +361,13 @@ function apiPostRating(router: Router) {
  * @param router The router to add the request to.
  */
 function apiGetRecommendation(router: Router) {
-  router.get('/recommendations/:id', (req: Request, res: Response) => {
-    const product_id = Number(req.params.id);
-    console.log(
-      `Received GET recommendation request for product ${product_id}`
-    );
-    recommend_from_product(product_id)
-      .then((products) => res.json(products))
-      .catch((_) => res.status(404).send('Not Found\n'));
-  });
+    router.get("/recommendations/:id", (req: Request, res: Response) => {
+        const product_id = Number(req.params.id);
+        console.log(`Received GET recommendation request for product ${product_id}`);
+        recommend_from_product(product_id)
+            .then((products) => res.json(products))
+            .catch((_) => res.status(404).send("Not Found\n"));
+    });
 }
 
 /**
@@ -394,19 +376,19 @@ function apiGetRecommendation(router: Router) {
  * @param router The router to add the request to.
  */
 function apiPutUser(router: Router) {
-  router.put('/user/:username', (req: Request, res: Response) => {
-    try {
-      const user_data = req.body;
-      const username = String(req.params.username);
-      console.log(`Received PUT request for user: ${user_data}`);
-      user_data['username'] = username;
-      updateUser(user_data);
-      res.status(200).send('User updated.\n');
-    } catch (e) {
-      console.log(e);
-      res.status(400).send('Invalid parameters or username.\n');
-    }
-  });
+    router.put("/user/:username", (req: Request, res: Response) => {
+        try {
+            const user_data = req.body;
+            const username = String(req.params.username);
+            console.log(`Received PUT request for user: ${user_data}`);
+            user_data["username"] = username;
+            updateUser(user_data);
+            res.status(200).send("User updated.\n");
+        } catch (e) {
+            console.log(e);
+            res.status(400).send("Invalid parameters or username.\n");
+        }
+    });
 }
 
 /**
@@ -415,11 +397,11 @@ function apiPutUser(router: Router) {
  * @param router The Express router to add the request to.
  */
 function apiGetProducts(router: Router) {
-  router.get('/products/:number', (req: Request, res: Response) => {
-    getProducts(parseInt(req.params.number))
-      .then((products) => res.json(products))
-      .catch((_) => res.status(404).send('Not Found\n'));
-  });
+    router.get("/products/:number", (req: Request, res: Response) => {
+        getProducts(parseInt(req.params.number))
+            .then((products) => res.json(products))
+            .catch((_) => res.status(404).send("Not Found\n"));
+    });
 }
 
 /**
@@ -428,14 +410,14 @@ function apiGetProducts(router: Router) {
  * @param router The Express router to add the request to.
  */
 function apiGetAllProducts(router: Router) {
-  router.get('/products/all', (res: Response) => {
-    getAllProducts()
-      .then((products) => {
-        console.log(res.json(products))
-        res.json(products)
-  })
-      .catch((_) => res.status(404).send('Not Found\n'));
-  });
+    router.get("/products/all", (res: Response) => {
+        getAllProducts()
+            .then((products) => {
+                console.log(res.json(products));
+                res.json(products);
+            })
+            .catch((_) => res.status(404).send("Not Found\n"));
+    });
 }
 
 /**
@@ -524,7 +506,9 @@ function apiGenerateReviews(router: Router) {
                 await Promise.all(result.map((rating) => addRating(rating)));
                 console.log(`Added ${quantity} random ratings to users and products.`);
             })
-            .catch((e) => console.log("An exception has occurred while updating users and products: ", e));
+            .catch((e) =>
+                console.log("An exception has occurred while updating users and products: ", e)
+            );
         const reviewPromise = randReviews(quantity)
             .then(async (result) => {
                 await Promise.all(result.map((review) => addReview(review)));
@@ -535,7 +519,9 @@ function apiGenerateReviews(router: Router) {
             });
         await Promise.all([ratingsPromise, reviewPromise])
             .then((_) => {
-                res.status(200).send(`Added ${quantity} random ratings and reviews to users and products.`);
+                res.status(200).send(
+                    `Added ${quantity} random ratings and reviews to users and products.`
+                );
             })
             .catch((e) => {
                 res.status(400).send("An excpetion occurred when generating reviews/ratings: " + e);
@@ -549,20 +535,19 @@ function apiGenerateReviews(router: Router) {
  * @param router The router to add the request to.
  */
 function apiAddDb(router: Router) {
-  router.post("/add-db", async (req: Request, res: Response) => {
-      try {
-          const { ipAddr } = req.body;
-          try {
+    router.post("/add-db", async (req: Request, res: Response) => {
+        const { ipAddr } = req.body;
+        if (ipAddr === undefined) {
+            res.status(400).send({error: "Missing parameter ipAddr"});
+        }
+        try {
             await registerDb(ipAddr);
             const successMessage = `Successfully added database ${ipAddr} to the sharding algorithm.`;
             console.log(successMessage);
-            res.status(200).send({success: successMessage});
-          } catch (e) {
-            res.status(400).send({error: `Unable to add database to the backend: ${e}`});
-          }
-      } catch (e) {
-          console.log(e);
-          res.status(400).send("Invalid parameters.\n");
-      }
-  });
+            res.status(200).send({ success: successMessage });
+        } catch (e) {
+            res.status(400).send({ error: `Unable to add database to the backend: ${e}` });
+        }
+    
+    });
 }

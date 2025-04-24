@@ -1,3 +1,4 @@
+use anyhow::{anyhow, Context};
 use reqwest::Client;
 use serde_json::{json, Value};
 use sqlx::{query, PgPool};
@@ -57,24 +58,22 @@ async fn post_schema(password: &str) -> Result<(), sqlx::Error> {
     Ok(())
 }
 
-pub async fn init_db(backend_addr: &str, ip_addr: &str) -> Result<String, String> {
+pub async fn init_db(backend_addr: &str, ip_addr: &str) -> Result<String, anyhow::Error> {
     let json_data = json!({
         "ipAddr": ip_addr
     });
     let backend_response: Value  = Client::new()
-        .put(backend_addr.to_owned() + ":8000/api/add-db")
+        .put("http://".to_owned() + backend_addr + ":8000/api/add-db")
         .json(&json_data)
         .send()
-        .await
-        .unwrap()
+        .await.with_context(|| "Not able to connect to server")?
         .json()
-        .await
-        .unwrap();
+        .await.with_context(|| "Unable to parse json")?;
 
     if let Some(error) = backend_response.get("error") {
-        return Err(error.to_string());
+        return Err(anyhow!(error.to_owned()));
     } else if let Some(success) = backend_response.get("success") {
         return Ok(success.to_string());
     }
-    return Err("backend was poorly coded, no response or success".to_owned());
+    return Err(anyhow!("backend was poorly coded, no response or success"));
 }
