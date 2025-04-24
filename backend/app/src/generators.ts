@@ -168,13 +168,13 @@ export async function randTransaction(n: number): Promise<TransactionRecord[]> {
 /**
  * Helper function which queries for all active users and returns the list of usernames.
  */
-function getUserNames(): Promise<{ username: string }[]> {
+export function getUserNames(): Promise<{ username: string }[]> {
     return db.query("SELECT username FROM USERS").then((data) => data.rows as any as { username: string }[])
 }
 
 /**
  * Helper function which queries for all active products and returns the list of product id's.
  */
-async function getProductIDs(): Promise<{ product_id: number }[]> {
+export async function getProductIDs(): Promise<{ product_id: number }[]> {
     return db.query("SELECT product_id FROM PRODUCTS").then((data) => data.rows as any as { product_id: number }[])
 }

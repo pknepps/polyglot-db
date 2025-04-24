@@ -118,9 +118,10 @@ export async function start() {
                 const serverInfo = await neoDriver.getServerInfo()
                 console.log('Connection to neo4j established')
                 console.log(serverInfo)
-              } catch(err) {
+            } catch(err) {
                 console.log(`Connection error\n${err}`)
-              }
+                throw err;
+            }
             // pass in mongodb as argument to interact
             const app = express();
             const port = process.env.PORT || 8000;
@@ -132,9 +133,11 @@ export async function start() {
             });
         } catch (e) {
             console.log("Unable to connect to mongodb.\n", e);
+            throw e;
         }
     } catch (e) {
         console.log("An error happened when trying to get the current transaction and product ids: ", e)
+        throw e;
     }
 }
 

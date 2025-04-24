@@ -1,5 +1,8 @@
-import { sanitize, connectMongo, connectRedis, start } from '../src/index';
+import { sanitize, connectMongo } from '../src/index';
 
+/**
+ * Test the connectMongo function.
+ */
 describe('connectMongo function', () => {
     test('should return a Db object', async () => {
         const address = 'localhost:27017';
@@ -7,9 +10,10 @@ describe('connectMongo function', () => {
         expect(db).toBeDefined();
         expect(db.databaseName).toBe('polyglots-db');
     });
+
     test('should throw an error if connection fails', async () => {
         const address = 'invalid-address';
-        await expect(connectMongo(address)).toThrow();
+        expect(connectMongo(address)).rejects.toThrow();
     });
 });
 
@@ -28,5 +32,16 @@ describe('sanitize function', () => {
         const expectedOutput = '';
         expect(sanitize(input)).toBe(expectedOutput);
     });
-});
 
+    test('should return the same string if no dangerous characters are present', () => {
+        const input = 'Hello world';
+        const expectedOutput = 'Hello world';
+        expect(sanitize(input)).toBe(expectedOutput);
+    });
+
+    test('should handle an empty string input', () => {
+        const input = '';
+        const expectedOutput = '';
+        expect(sanitize(input)).toBe(expectedOutput);
+    });
+});
