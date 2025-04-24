@@ -17,6 +17,11 @@ import { pullIntoCache } from "./cache";
  * @param db The mongo database in which the user to update is located.
  */
 export async function updateUser(props: Partial<User> & Pick<User, "username">) {
+    if (!props.username || props.username.trim() === "") {
+        console.log("Invalid username provided:", props.username);
+        return;
+    }
+
     const db = mongoConnections.get((await getMongoAddress("u" + props.username))!);
     // @ts-ignore
     db.collection("users")

@@ -31,15 +31,33 @@ export async function makeConnections() {
  * @param db The name of the field in the DBMap interface to search through
  * @returns The address of the shard to send new data to
  */
+// function getAddressToSend(): string {
+//     let min: [string, number] = ["", Number.MAX_VALUE];
+//     for (let entry of dbMap.mongoDB) {
+//         if (entry[1] < min[1]) {
+//             min = entry;
+//         }
+//     }
+//     min[1]++;
+//     return min[0];
+// }
 function getAddressToSend(): string {
-    let min: [string, number] = ["", Number.MAX_VALUE];
-    for (let entry of dbMap.mongoDB) {
-        if (entry[1] < min[1]) {
-            min = entry;
+    const dbMap = (global as any).dbMap?.mongoDB;
+    if (!dbMap || dbMap.size === 0) {
+        return ""; 
+    }
+
+    let leastItemsShard = "";
+    let leastItems = Infinity;
+
+    for (const [shard, itemCount] of dbMap.entries()) {
+        if (itemCount < leastItems) {
+            leastItems = itemCount;
+            leastItemsShard = shard;
         }
     }
-    min[1]++;
-    return min[0];
+
+    return leastItemsShard;
 }
 
 /**
