@@ -36,6 +36,7 @@ export async function recommend_from_product(product_id: number): Promise<
         });
     } catch (err) {
         console.error("neo4j rejected query with error:", err)
+        return Promise.reject(err);
     }
-    return new Promise((_, reject) => reject());
+    // return new Promise((_, reject) => reject());
 }
