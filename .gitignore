@@ -47,3 +47,5 @@ next-env.d.ts
 
 # rust backend
 /rust_backend/target/
+
+/backend/app/coverage
