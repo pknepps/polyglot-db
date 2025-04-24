@@ -23,6 +23,9 @@ describe("update.ts", () => {
         jest.clearAllMocks();
     });
 
+    /**
+     * Test for the updateUser function.
+     */
     describe("updateUser function", () => {
         test("should update user properties successfully", async () => {
             mockDb.updateOne.mockResolvedValueOnce({});
@@ -38,6 +41,15 @@ describe("update.ts", () => {
             );
         });
 
+        test("should handle missing username in updateUser", async () => {
+            const consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+            await updateUser({ username: "" });
+            expect(getMongoAddress).not.toHaveBeenCalled();
+            expect(mockDb.updateOne).not.toHaveBeenCalled();
+            expect(consoleLogSpy).toHaveBeenCalledWith("Invalid username provided:", "");
+            consoleLogSpy.mockRestore(); 
+        });
+
         test("should handle errors when updating user", async () => {
             mockDb.updateOne.mockRejectedValueOnce(new Error("Update failed"));
             (getMongoAddress as jest.Mock).mockResolvedValueOnce("mockAddress");
@@ -48,6 +60,9 @@ describe("update.ts", () => {
         });
     });
 
+    /**
+     * Test for the updateProduct function.
+     */
     describe("updateProduct function", () => {
         test("should update product properties successfully", async () => {
             mockDb.updateOne.mockResolvedValueOnce({});
@@ -73,6 +88,9 @@ describe("update.ts", () => {
         });
     });
 
+    /**
+     * Test for the addReview function.
+     */
     describe("addReview function", () => {
         test("should add a review to user and product successfully", async () => {
             mockDb.updateOne.mockResolvedValue({});
@@ -92,6 +110,9 @@ describe("update.ts", () => {
         });
     });
 
+    /**
+     * Test for the addRating function.
+     */
     describe("addRating function", () => {
         test("should add a rating to user and product successfully", async () => {
             mockDb.updateOne.mockResolvedValue({});
