@@ -15,10 +15,10 @@ services:
     ports:
       - 27017:27017
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_USERNAME: mongo
       MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_pass
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh --username root --password $(cat /run/secrets/mongo_pass) --quiet
+      test: echo 'db.runCommand("ping").ok' | mongosh --username mongo --password $(cat /run/secrets/mongo_pass) --quiet
   
 secrets:
   mongo_pass:

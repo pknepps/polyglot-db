@@ -487,7 +487,6 @@ function apiGenerateTransactions(router: Router) {
             })
             .catch((e) => {
                 console.log("An exception has occurred while inserting into transactions: " + e);
-                console.log(e);
                 res.status(400).send("Invalid parameters.\n");
             });
     });
@@ -548,6 +547,5 @@ function apiAddDb(router: Router) {
         } catch (e) {
             res.status(400).send({ error: `Unable to add database to the backend: ${e}` });
         }
-    
     });
 }
