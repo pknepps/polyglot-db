@@ -3,3 +3,5 @@ psql -f init.sql --password p01yg10ts
 sudo docker run --publish=7474:7474 --publish=7687:7687 --env NEO4J_AUTH=neo4j/jojygjojs neo4j:5.24.1 --detach
 
 docker run --name polyglot-redis -d redis
+
+docker compose build rust_backend && DB_ADDR=localhost BACKEND_ADDR=localhost docker compose run rust_backend

@@ -40,7 +40,7 @@ async fn main() {
         println!("Succesfully connected: {success}");
     } else {
         let err = res.err().unwrap();
-        eprintln!("Error connecting to db: {err}");
+        eprintln!("Error connecting to db: {:?}", err);
         process::exit(1);
     }
 }
