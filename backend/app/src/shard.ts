@@ -69,24 +69,13 @@ export function getMongoAddressToSend(): string {
 }
 
 /**
- * Helper method which queries Redis for the address of the shard which holds
- * the item of the given id.
- * @param id The id of the item to query for.
- * @param db The database name which the item is loated.
- * @returns The address of the host which holds the data.
- */
-async function getAddress(id: string): Promise<string | null> {
-    return (await redis).get(id);
-}
-
-/**
  * Queries Redis for the address of the Mongo database which holds the item
  * of the given id.
  * @param id The id of the item to query for.
  * @returns The address of the host which holds the data.
  */
 export async function getMongoAddress(id: string): Promise<string | null> {
-    return getAddress(id);
+    return (await redis).get(id);
 }
 
 export async function setMongoAddress(id: string, address: string) {
