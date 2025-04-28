@@ -94,3 +94,9 @@ export async function registerDb(address: string): Promise<void> {
         throw e;
     }
 }
+
+export async function removeDB(address: string) : Promise<void> {
+    if (!mongoConnections.delete(address)) {
+        throw Error("Attemted to remove DB: " + address + " does not exist");
+    }
+}
