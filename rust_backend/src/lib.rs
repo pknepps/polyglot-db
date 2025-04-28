@@ -62,13 +62,25 @@ pub async fn init_db(backend_addr: &str, ip_addr: &str) -> Result<String, anyhow
     let json_data = json!({
         "ipAddr": ip_addr
     });
-    let backend_response: Value  = Client::new()
+    let backend_response  = Client::new()
         .post(format!("http://{backend_addr}:8000/api/add-db"))
         .json(&json_data)
         .send()
-        .await.with_context(|| "Not able to connect to server")?
-        .json()
-        .await.with_context(|| "Unable to parse json")?;
+        .await
+        .with_context(|| "Not able to connect to server")?;
+
+    match backend_response.error_for_status_ref() {
+        Ok(_) => (),
+        Err(code) => return Err(anyhow!("Error response from backend {}", code)),
+    }
+
+    let backend_response: Value = serde_json::from_str(
+        &backend_response
+            .text()
+            .await
+            .with_context(|| "Unable to extract text")?,
+    )
+    .with_context(|| "unable to parse json")?;
 
     if let Some(error) = backend_response.get("error") {
         return Err(anyhow!(error.to_owned()));

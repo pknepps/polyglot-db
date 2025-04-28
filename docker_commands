@@ -4,4 +4,7 @@ sudo docker run --publish=7474:7474 --publish=7687:7687 --env NEO4J_AUTH=neo4j/j
 
 docker run --name polyglot-redis -d redis
 
-docker compose build rust_backend && DB_ADDR=localhost BACKEND_ADDR=localhost docker compose run rust_backend
+# test rust script
+docker compose build rust_backend && DB_ADDR="localhost" BACKEND_ADDR="host.docker.internal" docker compose run rust_backend
+# run new db backend
+DB_ADDR="localhost" BACKEND_ADDR="host.docker.internal" docker compose up
