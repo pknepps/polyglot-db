@@ -13,6 +13,8 @@ const dbMap: DBMap = {
     mongoDB: new Map(),
 }
 
+dbMap.mongoDB.set("pknepps.net", 0);
+
 // caches connections to databases
 export const mongoConnections: Map<string, Db> = new Map();
 

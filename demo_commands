@@ -10,3 +10,4 @@ curl -H 'Content-Type: application/json' -d '{ "quantity": 10 }' -X POST http://
 curl -H 'Content-Type: application/json' -d '{ "quantity": 10 }' -X POST http://localhost:8000/api/generate/transactions
 curl -H 'Content-Type: application/json' -d '{ "quantity": 10 }' -X POST http://localhost:8000/api/generate/reviews
 curl -H 'Content-Type: application/json' -d '{ "quantity": 10 }' -X POST http://localhost:8000/api/generate/products
+curl -H 'Content-Type: application/json' -d '{ "ipAddr": "localhost" }' -X POST http://localhost:8000/api/add-db
