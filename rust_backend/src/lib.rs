@@ -62,8 +62,8 @@ pub async fn init_db(backend_addr: &str, ip_addr: &str) -> Result<String, anyhow
     let json_data = json!({
         "ipAddr": ip_addr
     });
-    let backend_response = Client::new()
-        .post("http://".to_owned() + backend_addr + ":8000/api/add-db")
+    let backend_response: Value  = Client::new()
+        .post(format!("http://{backend_addr}:8000/api/add-db"))
         .json(&json_data)
         .send()
         .await

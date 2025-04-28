@@ -24,7 +24,13 @@ export async function getUser(un: string) {
     try {
         const address = await getMongoAddress("u" + un);
         const mongodb: Db = await (mongoConnections.get(address!)!)!;
-        return await mongodb.collection("users").findOne({ username: un });
+        const user = await mongodb.collection("users").findOne({ username: un });
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        return user;
     } catch (error) {
         console.log("The user does not exist.");
         return new Promise((_, reject) => reject());

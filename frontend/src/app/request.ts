@@ -12,7 +12,7 @@ import {
   TransactionRecord,
 } from '../../../backend/app/src/interfaces';
 
-const backendAddress = 'http://localhost:8000/api/';
+const backendAddress = 'http://pknepps.net:8000/api/';
 const frontendAddress = 'http://localhost:3000/';
 const GETHeaders = new Headers();
 GETHeaders.append('Access-Control-Allow-Origin', '*');
