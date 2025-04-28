@@ -63,7 +63,7 @@ pub async fn init_db(backend_addr: &str, ip_addr: &str) -> Result<String, anyhow
         "ipAddr": ip_addr
     });
     let backend_response: Value  = Client::new()
-        .put("http://".to_owned() + backend_addr + ":8000/api/add-db")
+        .post(format!("http://{backend_addr}:8000/api/add-db"))
         .json(&json_data)
         .send()
         .await.with_context(|| "Not able to connect to server")?
