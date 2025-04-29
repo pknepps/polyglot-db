@@ -20,8 +20,8 @@ dbMap.mongoDB.set("pknepps.net", 0);
 export const mongoConnections: Map<string, Db> = new Map();
 
 export async function makeConnections() {
-    console.log("HELP", dbMap.mongoDB.entries);
     for (let [address, _] of dbMap.mongoDB) {
+        console.log(address);
         try {
             mongoConnections.set(address, await connectMongo(address));
         } catch (e) {
