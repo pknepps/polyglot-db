@@ -102,19 +102,6 @@ export async function newProduct(pr: ProductRecord, p: Product) {
             await redis.decr("curr_product_id");
             throw err;
         })
-        // insert the product into the mongodb collection
-        .then(() => {
-                try {
-                    mongo_db.collection("products").findOne({ product_id: p.product_id })
-                } catch (e) {
-                    console.error(
-                        `Encountered error when trying to insert ${pr.productId} into \ 
-                        ${mongoAddress}\n${e}`
-                    );
-                    return true;
-                }
-            }
-        )
         .then(async (existingProduct) => {
             if (existingProduct === null) {
                 await mongo_db.collection("products").insertOne(p);
