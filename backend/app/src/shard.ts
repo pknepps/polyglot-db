@@ -55,8 +55,6 @@ export function getMongoAddressToSend(): string {
         }
     }
 
-    console.log("shard:", leastItemsShard);
-
     if (leastItemsShard == "") {
         throw error("No address available");
     }
