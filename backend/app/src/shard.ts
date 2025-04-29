@@ -44,7 +44,7 @@ export async function makeConnections() {
 //     min[1]++;
 //     return min[0];
 // }
-function getAddressToSend(): string {
+export function getMongoAddressToSend(): string {
     const dbMap = (global as any).dbMap?.mongoDB;
     if (!dbMap || dbMap.size === 0) {
         return ""; 
@@ -64,15 +64,9 @@ function getAddressToSend(): string {
         throw error("No address available");
     }
 
-    return leastItemsShard;
-}
+    console.log(leastItemsShard);
 
-/**
- * Calculates the best existing MongoDB shard to send new data to.
- * @returns The address of the MongoDB shard to send new data to.
- */
-export function getMongoAddressToSend(): string {
-    return getAddressToSend();
+    return leastItemsShard;
 }
 
 /**
