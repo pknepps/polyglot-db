@@ -1,3 +1,4 @@
+import { error } from "console";
 import { connectMongo, redis } from ".";
 import { Db } from "mongodb";
 
@@ -57,6 +58,10 @@ function getAddressToSend(): string {
             leastItems = itemCount;
             leastItemsShard = shard;
         }
+    }
+
+    if (leastItemsShard == "") {
+        throw error("No address available");
     }
 
     return leastItemsShard;

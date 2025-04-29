@@ -9,6 +9,9 @@
 import { neoDriver, sanitize, db, redis } from "./index";
 import { UserRecord, ProductRecord, TransactionRecord, User, Product } from "./interfaces";
 import { setMongoAddress, getMongoAddress, getMongoAddressToSend, mongoConnections } from "./shard";
+import { Db } from "mongodb";
+import "assert";
+import { error } from "console";
 
 /**
  * This is responsible for creating a new user.
@@ -83,8 +86,12 @@ export async function newProduct(pr: ProductRecord, p: Product) {
     if (pr.name.length > 255) {
         throw new Error("Product name has too many characters.");
     }
-    let mongoAddress = getMongoAddressToSend()
-    let mongo_db = mongoConnections.get(mongoAddress)!;
+    let mongoAddress = getMongoAddressToSend();
+    console.log("mongoAddress");
+    let mongo_db: Db = mongoConnections.get(mongoAddress)!;
+    if (!mongo_db) {
+        throw error("mongo_db is null")
+    }
     // increment the current pid
     const curr_pid = await redis.incr("curr_product_id");
     pr.productId = curr_pid;
