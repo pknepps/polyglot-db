@@ -21,7 +21,6 @@ export const mongoConnections: Map<string, Db> = new Map();
 
 export async function makeConnections() {
     for (let [address, _] of dbMap.mongoDB) {
-        console.log(address);
         try {
             mongoConnections.set(address, await connectMongo(address));
         } catch (e) {
@@ -54,7 +53,7 @@ export function getMongoAddressToSend(): string {
     let leastItemsShard = "";
     let leastItems = Infinity;
 
-    for (const [shard, itemCount] of dbMap.entries()) {
+    for (const [shard, itemCount] of dbMap.mongoDB) {
         if (itemCount < leastItems) {
             leastItems = itemCount;
             leastItemsShard = shard;
