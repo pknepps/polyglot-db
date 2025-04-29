@@ -49,7 +49,6 @@ export function getMongoAddressToSend(): string {
     let leastItems = Infinity;
 
     for (const [shard, itemCount] of dbMap.mongoDB) {
-        console.log(shard);
         if (itemCount < leastItems) {
             leastItems = itemCount;
             leastItemsShard = shard;
@@ -62,6 +61,7 @@ export function getMongoAddressToSend(): string {
         throw error("No address available");
     }
 
+    dbMap.mongoDB.set(leastItemsShard, leastItems + 1);
 
     return leastItemsShard;
 }
