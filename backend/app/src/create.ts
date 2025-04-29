@@ -102,14 +102,10 @@ export async function newProduct(pr: ProductRecord, p: Product) {
             await redis.decr("curr_product_id");
             throw err;
         })
-        .then(async (existingProduct) => {
-            if (existingProduct === null) {
-                await mongo_db.collection("products").insertOne(p);
-                await setMongoAddress("p" + pr.productId, mongoAddress);
-                return console.log(`Inserted ${p.product_id} into MongoDB products collection.`);
-            } else {
-                throw new Error(`The product exists within the mongo collection, try another product_id.`);
-            }
+        .then(async () => {
+            await mongo_db.collection("products").insertOne(p);
+            await setMongoAddress("p" + pr.productId, mongoAddress);
+            return console.log(`Inserted ${p.product_id} into MongoDB products collection.`);
         })
         .then(() =>
             neoDriver
