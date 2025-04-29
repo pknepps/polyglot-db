@@ -89,8 +89,11 @@ export async function registerDb(address: string): Promise<void> {
         return;
     }
     try {
-        mongoConnections.set(address, await connectMongo(address));
+        let db = await connectMongo(address);
+        mongoConnections.set(address, db);
         dbMap.mongoDB.set(address, 0); // TODO this should probably be how many things are in the db.
+        db.createCollection("products");
+        db.createCollection("users");
     } catch (e) {
         console.error(`Could not connect to MongoDB at ${address}: `, e)
         throw e;
