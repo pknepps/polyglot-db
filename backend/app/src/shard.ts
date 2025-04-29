@@ -45,11 +45,6 @@ export async function makeConnections() {
 //     return min[0];
 // }
 export function getMongoAddressToSend(): string {
-    const dbMap = (global as any).dbMap?.mongoDB;
-    if (!dbMap || dbMap.size === 0) {
-        return ""; 
-    }
-
     let leastItemsShard = "";
     let leastItems = Infinity;
 
