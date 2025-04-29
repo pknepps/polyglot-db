@@ -87,7 +87,7 @@ export async function newProduct(pr: ProductRecord, p: Product) {
         throw new Error("Product name has too many characters.");
     }
     let mongoAddress = getMongoAddressToSend();
-    console.log("mongoAddress");
+    console.log(mongoAddress);
     let mongo_db: Db = mongoConnections.get(mongoAddress)!;
     if (!mongo_db) {
         throw error("mongo_db is null")
