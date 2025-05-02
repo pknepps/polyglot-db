@@ -21,6 +21,7 @@ export async function pullIntoCache(productId: number, mongoDB: Db) {
         (await recommend_from_product(productId)).forEach(
             async (productPart: Partial<Product> & Pick<Product, "product_id">) => {
                 const address = (await getMongoAddress("p" + productPart.product_id))!;
+                console.log(`${productPart.product_id}, ${address}`);
                 const mongoDB: Db = mongoConnections.get(address)!;
                 const product: Product = await mongoDB.collection("products")
                     .findOne({ product_id: productPart.product_id }) as ProductObject as Product;
