@@ -30,7 +30,7 @@ describe("shard.ts", () => {
             (global as any).dbMap = { mongoDB: mockDbMap }; 
         
             const result = getMongoAddressToSend();
-            expect(result).toBe("");
+            expect(result).toBe("pknepps.net");
         });
     });
 
