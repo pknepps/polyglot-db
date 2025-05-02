@@ -203,7 +203,7 @@ export async function newTransaction(t: TransactionRecord) {
                 .then(() => console.log(`Made transaction between ${t.username} and ${t.productId} into neo4j`))
         )
         .catch((error) => {
-            console.log("An error occured while adding new product: ", error);
+            console.log("An error occured while adding new transaction: ", error);
             throw error;
         })
 }
