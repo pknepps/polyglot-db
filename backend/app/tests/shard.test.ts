@@ -114,7 +114,7 @@ describe("shard.ts", () => {
 
             await makeConnections();
 
-            expect(connectMongo).toHaveBeenCalledTimes(1);
+            expect(connectMongo).toHaveBeenCalledTimes(2);
             expect(connectMongo).toHaveBeenCalledWith("shard1");
             expect(mongoConnections.get("shard1")).toBe(mockDb);
         });

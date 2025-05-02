@@ -117,6 +117,52 @@ describe("update.ts", () => {
             expect(getMongoAddress).toHaveBeenCalledWith("p123");
             expect(mockDb.updateOne).toHaveBeenCalledTimes(2);
         });
+
+        test("should handle errors when adding review to user or product", async () => {
+            const consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+            mockDb.updateOne
+                .mockRejectedValueOnce(new Error("User review insert failed"))  // first call
+                .mockResolvedValueOnce({});  // second call
+            (getMongoAddress as jest.Mock)
+                .mockResolvedValueOnce("userAddress")
+                .mockResolvedValueOnce("productAddress");
+        
+            await addReview({
+                username: "testUser",
+                product_id: 123,
+                review: "Awesome!",
+            });
+        
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                "Failed to add review to user: ",
+                "testUser",
+                "\n",
+                expect.any(Error)
+            );
+            consoleLogSpy.mockRestore();
+        });
+
+        test("should log error if adding review to user fails", async () => {
+            const consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+            mockDb.updateOne
+                .mockRejectedValueOnce(new Error("User update failed"))  // user fails
+                .mockResolvedValueOnce({});  // product succeeds
+        
+            (getMongoAddress as jest.Mock)
+                .mockResolvedValueOnce("userAddress")
+                .mockResolvedValueOnce("productAddress");
+        
+            await addReview({ username: "testUser", product_id: 123, review: "Nice!" });
+        
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                "Failed to add review to user: ",
+                "testUser",
+                "\n",
+                expect.any(Error)
+            );
+        
+            consoleLogSpy.mockRestore();
+        });
     });
 
     /**
@@ -138,6 +184,50 @@ describe("update.ts", () => {
             expect(getMongoAddress).toHaveBeenCalledWith("utestUser");
             expect(getMongoAddress).toHaveBeenCalledWith("p123");
             expect(mockDb.updateOne).toHaveBeenCalledTimes(2);
+        });
+
+        test("should log error if adding rating to user fails", async () => {
+            const consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+            mockDb.updateOne
+                .mockRejectedValueOnce(new Error("User rating failed"))  // user fails
+                .mockResolvedValueOnce({});  // product succeeds
+        
+            (getMongoAddress as jest.Mock)
+                .mockResolvedValueOnce("userAddress")
+                .mockResolvedValueOnce("productAddress");
+        
+            await addRating({ username: "testUser", product_id: 456, rating: 4 });
+        
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                "Failed to add rating to user: ",
+                "testUser",
+                "\n",
+                expect.any(Error)
+            );
+        
+            consoleLogSpy.mockRestore();
+        });
+
+        test("should log error if adding rating to product fails", async () => {
+            const consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+            mockDb.updateOne
+                .mockResolvedValueOnce({})  // user succeeds
+                .mockRejectedValueOnce(new Error("Product rating failed"));  // product fails
+        
+            (getMongoAddress as jest.Mock)
+                .mockResolvedValueOnce("userAddress")
+                .mockResolvedValueOnce("productAddress");
+        
+            await addRating({ username: "testUser", product_id: 789, rating: 2 });
+        
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                "Failed to add rating to product: ",
+                789,
+                "\n",
+                expect.any(Error)
+            );
+        
+            consoleLogSpy.mockRestore();
         });
     });
 });
