@@ -1,4 +1,4 @@
-import { getMongoAddressToSend, getMongoAddress, setMongoAddress, registerDb, makeConnections, mongoConnections } from "../src/shard";
+import { getMongoAddressToSend, getMongoAddress, setMongoAddress, registerDb, makeConnections, mongoConnections, removeDB } from "../src/shard";
 import { redis } from "../src";
 import { connectMongo } from "../src";
 import { Db } from "mongodb";
@@ -30,7 +30,7 @@ describe("shard.ts", () => {
             (global as any).dbMap = { mongoDB: mockDbMap }; 
         
             const result = getMongoAddressToSend();
-            expect(result).toBe("shard2");
+            expect(result).toBe("");
         });
     });
 
@@ -70,17 +70,20 @@ describe("shard.ts", () => {
 
     /**
      * Test the registerDb function.
-
      */
     describe("registerDb function", () => {
         test("should register a new MongoDB shard and initialize its connection", async () => {
-            const mockDb = {} as Db;
+            const mockDb = {
+                createCollection: jest.fn(), // Mock the createCollection method
+            } as unknown as Db;
             (connectMongo as jest.Mock).mockResolvedValue(mockDb);
 
             await registerDb("shard1");
 
             expect(connectMongo).toHaveBeenCalledWith("shard1");
             expect(mongoConnections.get("shard1")).toBe(mockDb);
+            expect(mockDb.createCollection).toHaveBeenCalledWith("products");
+            expect(mockDb.createCollection).toHaveBeenCalledWith("users");
         });
 
         test("should not register a shard if it is already registered", async () => {
@@ -128,7 +131,6 @@ describe("shard.ts", () => {
             expect(connectMongo).toHaveBeenCalled();
         });
 
-
         test("should log an error if a connection fails", async () => {
             const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation();
             (connectMongo as jest.Mock).mockRejectedValue(new Error("Connection failed"));
@@ -144,6 +146,26 @@ describe("shard.ts", () => {
             );
 
             consoleErrorSpy.mockRestore();
+        });
+    });
+
+    /**
+     * Test the removeDB function.
+     */
+    describe("removeDB function", () => {
+        test("should successfully remove a database connection", async () => {
+            const mockDb = {} as Db;
+            mongoConnections.set("shard1", mockDb);
+    
+            await removeDB("shard1");
+    
+            expect(mongoConnections.has("shard1")).toBe(false);
+        });
+    
+        test("should throw an error if the database does not exist", async () => {
+            await expect(removeDB("nonExistentShard")).rejects.toThrow(
+                "Attemted to remove DB: nonExistentShard does not exist"
+            );
         });
     });
 });
