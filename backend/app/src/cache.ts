@@ -2,6 +2,7 @@ import { Db } from "mongodb";
 import { redis } from "./index";
 import { Product, ProductObject } from "./interfaces";
 import { recommend_from_product } from "./recommend";
+import { getMongoAddress, mongoConnections } from "./shard";
 
 const CACHE_TIME = 45;
 
@@ -19,6 +20,8 @@ export async function pullIntoCache(productId: number, mongoDB: Db) {
         await redis.setEx("" + productId, 300, JSON.stringify(product as ProductObject as Product));
         (await recommend_from_product(productId)).forEach(
             async (productPart: Partial<Product> & Pick<Product, "product_id">) => {
+                const address = (await getMongoAddress("p" + productPart.product_id))!;
+                const mongoDB: Db = mongoConnections.get(address)!;
                 const product: Product = await mongoDB.collection("products")
                     .findOne({ product_id: productPart.product_id }) as ProductObject as Product;
                 redis.setEx("" + productPart.product_id, CACHE_TIME, JSON.stringify(product));
