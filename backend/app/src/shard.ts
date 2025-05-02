@@ -1,3 +1,4 @@
+import { error } from "console";
 import { connectMongo, redis } from ".";
 import { Db } from "mongodb";
 
@@ -43,31 +44,28 @@ export async function makeConnections() {
 //     min[1]++;
 //     return min[0];
 // }
-function getAddressToSend(): string {
-    const dbMap = (global as any).dbMap?.mongoDB;
-    if (!dbMap || dbMap.size === 0) {
-        return ""; 
+export function getMongoAddressToSend(): string {
+    if (!dbMap || dbMap.mongoDB.entries.length == 0) {
+        return "";
     }
 
     let leastItemsShard = "";
     let leastItems = Infinity;
 
-    for (const [shard, itemCount] of dbMap.entries()) {
+    for (const [shard, itemCount] of dbMap.mongoDB) {
         if (itemCount < leastItems) {
             leastItems = itemCount;
             leastItemsShard = shard;
         }
     }
 
-    return leastItemsShard;
-}
+    if (leastItemsShard == "") {
+        throw error("No address available");
+    }
 
-/**
- * Calculates the best existing MongoDB shard to send new data to.
- * @returns The address of the MongoDB shard to send new data to.
- */
-export function getMongoAddressToSend(): string {
-    return getAddressToSend();
+    dbMap.mongoDB.set(leastItemsShard, leastItems + 1);
+
+    return leastItemsShard;
 }
 
 /**
@@ -89,10 +87,19 @@ export async function registerDb(address: string): Promise<void> {
         return;
     }
     try {
-        mongoConnections.set(address, await connectMongo(address));
+        let db = await connectMongo(address);
+        mongoConnections.set(address, db);
         dbMap.mongoDB.set(address, 0); // TODO this should probably be how many things are in the db.
+        db.createCollection("products");
+        db.createCollection("users");
     } catch (e) {
         console.error(`Could not connect to MongoDB at ${address}: `, e)
         throw e;
+    }
+}
+
+export async function removeDB(address: string) : Promise<void> {
+    if (!mongoConnections.delete(address)) {
+        throw Error("Attemted to remove DB: " + address + " does not exist");
     }
 }

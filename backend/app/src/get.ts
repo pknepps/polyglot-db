@@ -51,7 +51,7 @@ export async function getProduct(pi: number) {
             return JSON.parse(product);
         }
         const address = (await getMongoAddress("p" + pi))!;
-        const mongodb: Db = (await mongoConnections.get(address))!;
+        const mongodb: Db = mongoConnections.get(address)!;
         pullIntoCache(pi, mongodb);
         return await mongodb.collection("products")
           .findOne({ product_id: pi }) as ProductObject as Product;

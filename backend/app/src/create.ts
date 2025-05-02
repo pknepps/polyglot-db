@@ -9,6 +9,9 @@
 import { neoDriver, sanitize, db, redis } from "./index";
 import { UserRecord, ProductRecord, TransactionRecord, User, Product } from "./interfaces";
 import { setMongoAddress, getMongoAddress, getMongoAddressToSend, mongoConnections } from "./shard";
+import { Db } from "mongodb";
+import "assert";
+import { error } from "console";
 
 /**
  * This is responsible for creating a new user.
@@ -83,8 +86,11 @@ export async function newProduct(pr: ProductRecord, p: Product) {
     if (pr.name.length > 255) {
         throw new Error("Product name has too many characters.");
     }
-    let mongoAddress = getMongoAddressToSend()
-    let mongo_db = mongoConnections.get(mongoAddress)!;
+    let mongoAddress = getMongoAddressToSend();
+    let mongo_db: Db = mongoConnections.get(mongoAddress)!;
+    if (!mongo_db) {
+        throw error("mongo_db is null")
+    }
     // increment the current pid
     const curr_pid = await redis.incr("curr_product_id");
     pr.productId = curr_pid;
@@ -102,16 +108,10 @@ export async function newProduct(pr: ProductRecord, p: Product) {
             await redis.decr("curr_product_id");
             throw err;
         })
-        // insert the product into the mongodb collection
-        .then(() => mongo_db.collection("products").findOne({ product_id: p.product_id }))
-        .then(async (existingProduct) => {
-            if (existingProduct === null) {
-                await mongo_db.collection("products").insertOne(p);
-                await setMongoAddress("p" + pr.productId, mongoAddress);
-                return console.log(`Inserted ${p.product_id} into MongoDB products collection.`);
-            } else {
-                throw new Error(`The product exists within the mongo collection, try another product_id.`);
-            }
+        .then(async () => {
+            await mongo_db.collection("products").insertOne(p);
+            await setMongoAddress("p" + pr.productId, mongoAddress);
+            return console.log(`Inserted ${p.product_id} into MongoDB products collection.`);
         })
         .then(() =>
             neoDriver

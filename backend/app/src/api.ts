@@ -23,7 +23,7 @@ import { Product, ProductRecord, User, UserRecord, TransactionRecord } from "./i
 import { addReview, addRating, updateProduct, updateUser } from "./update";
 import { recommend_from_product } from "./recommend";
 import { randProduct, randRatings, randReviews, randTransaction, randUser } from "./generators";
-import { registerDb } from "./shard";
+import { registerDb, removeDB } from "./shard";
 
 /**
  * Creates an Express router, which is used to define and handle API routes for the
@@ -55,6 +55,7 @@ export function createRouter() {
     apiGetRedisData(router);
     apiGetProductByName(router);
     apiAddDb(router);
+    apiRemoveDb(router);
     return router;
 }
 
@@ -542,6 +543,28 @@ function apiAddDb(router: Router) {
         try {
             await registerDb(ipAddr);
             const successMessage = `Successfully added database ${ipAddr} to the sharding algorithm.`;
+            console.log(successMessage);
+            res.status(200).send({ success: successMessage });
+        } catch (e) {
+            res.status(400).send({ error: `Unable to add database to the backend: ${e}` });
+        }
+    });
+}
+
+/**
+ * Adds a route to remove an existing database on the backend.
+ *
+ * @param router The router to add the request to.
+ */
+function apiRemoveDb(router: Router) {
+    router.post("/remove-db", async (req: Request, res: Response) => {
+        const { ipAddr } = req.body;
+        if (ipAddr === undefined) {
+            res.status(400).send({error: "Missing parameter ipAddr"});
+        }
+        try {
+            await removeDB(ipAddr);
+            const successMessage = `Successfully removed database ${ipAddr}.`;
             console.log(successMessage);
             res.status(200).send({ success: successMessage });
         } catch (e) {
