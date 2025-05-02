@@ -207,15 +207,6 @@ export async function getPostgresData(pid?: number) {
 export async function getNeoGraph(pid?: number) {
   const session = neoDriver.session();
   try {
-    //
-    // This is ideal but having trouble getting it to work. Going to get the basic
-    // working first
-    //
-    // const result = await session.run(
-    //     "MATCH (n {product_id: $pid})-[r:BOUGHT*1..2]-(related) RETURN n, r, related",
-    //     { pid }
-    // );
-
     let result;
     if (pid !== undefined) {
       result = await session.run(
