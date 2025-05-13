@@ -12,3 +12,4 @@ curl -H 'Content-Type: application/json' -d '{ "quantity": 10 }' -X POST http://
 curl -H 'Content-Type: application/json' -d '{ "quantity": 10 }' -X POST http://localhost:8000/api/generate/products
 curl -H 'Content-Type: application/json' -d '{ "ipAddr": "localhost" }' -X POST http://localhost:8000/api/add-db
 DB_ADDR=192.168.0.212 BACKEND_ADDR=pknepps.net cargo run
+sudo tailscale up
