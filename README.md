@@ -17,3 +17,5 @@ Polyglot-DB is an example implementation of a multi-database application. The fo
    - Used to store cached webpage data
 
 Each of these work together to form a mock ecommerce application (i.e. Amazon), which demonstrates how multiple databases can work together to overcome obstacles that a single database would have.
+
+For details, see the ![final report](https://github.com/pknepps/polyglot-db/blob/main/CS_496_FinalReport.pdf)
